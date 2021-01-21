@@ -1,0 +1,121 @@
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++  --------------------------------------------------------------- +
++ | !!!!!!!!!!!!!!!!!! INSTALL (LXPUB) --- !!!!!!!!!!!!!!!!!!!!! | +
++  --------------------------------------------------------------- +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+******************
+***  SPDROOT   ***
+******************
+
+cd spdroot/
+
+. SetEnv_lxpub.sh
+
+cat SetEnv_lxpub.sh
+------------------------------------------ >>>>>
+
+#!/bin/bash
+
+export CXX=/opt/rh/devtoolset-1.1/root/usr/bin/g++
+export SIMPATH=/scrc/u/fair_install/fairsoft
+export FAIRROOTPATH=/scrc/u/fair_install/fairsoft/FairRoot
+
+source build/config.sh
+
+------------------------------------------ <<<<<
+
+(delete build folder: rm -rf build/)
+
+mkdir build
+cd build
+cmake -DUSE_DIFFERENT_COMPILER=TRUE ..
+make
+
+cd ..
+
+. build/config.sh
+
+
+cd macro
+root -l
+root[0] .x run_sim.C 
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++  --------------------------------------------------------------- +
++ | !!!!!!!!!!!!!!!!!! INSTALL (AFS) --- !!!!!!!!!!!!!!!!!!!!!!! | +
++  --------------------------------------------------------------- +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+[I.]
+
+******************
+***  FAIRROOT  ***
+******************
+  
+copy FairRoot ti AFS-dirctory
+
+(decompress *tar.gz : tar xvfz FairRoot.tar.gz)
+
+export CXX=/usr/bin/g++
+export SIMPATH=/afs/.jinr.ru/fairsoft/may16p1_r5
+
+#export CC=/opt/rh/devtoolset-4/root/usr/bin/gcc
+#export CXX=/opt/rh/devtoolset-4/root/usr/bin/g++
+
+#export SIMPATH=/afs/.jinr.ru/fairsoft/may16p1_r6
+
+#export SIMPATH=/afs/.jinr.ru/compass/common/FSinstall
+
+
+cd FairRoot
+
+1. Comment line in CMakeLists.txt: 
+
+   add_subdirectory (example) -> #add_subdirectory (example)
+
+2. mkdir build
+   cd build
+   cmake -DCMAKE_INSTALL_PREFIX="/afs/jinr.ru/user/a/avt/FairRoot/install/" ..
+   make
+   make install
+   
+[II.]
+
+******************
+***  SPDROOT   ***
+******************
+  
+cd spdroot/
+
+. SetEnv_afs.sh
+
+cat SetEnv_afs.sh
+------------------------------------------ >>>>>
+
+#!/bin/bash
+
+export CXX=/usr/bin/g++
+export SIMPATH=/afs/jinr.ru/fairsoft/ 
+export FAIRROOTPATH=/afs/jinr.ru/user/a/avt/FairRoot/install
+
+source build/config.sh
+
+------------------------------------------ <<<<<
+
+(delete build folder: rm -rf build/)
+ 
+mkdir build
+cd build
+cmake ..
+make
+
+cd ..
+
+. build/config.sh
+
+cd macro
+root -l
+root[0] .x run_sim.C 
+

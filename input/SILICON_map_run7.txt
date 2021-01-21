@@ -1,0 +1,20 @@
+//Station: 0 - vertex (near), 1 - vertex(far), 2 - Forward detector
+//Layer: 0 - vertical strips, 1 - sloped strips
+    Serial    Ch_lo    Ch_hi   ADC_mod  GEO_mod   Layer  Station
+================================================================
+0x0611E01A       53       57         2        0       0        2
+0x0611E01A       58       62         2        0       1        2
+0x0611E01A       37       41         1        1       0        2
+0x0611E01A       42       46         1        1       1        2
+0x0611D0C2       37       41         1        0       0        1
+0x0611D0C2       42       46         1        0       1        1
+0x0611D0C2       53       57         2        1       0        1
+0x0611D0C2       58       62         2        1       1        1
+0x0611D0C2        5        9         3        2       0        1
+0x0611D0C2       10       14         3        2       1        1
+0x0611D0C2       21       25         4        3       0        1
+0x0611D0C2       26       30         4        3       1        1
+0x080C3B50       16       20         9        0       0        0
+0x080C3B50       21       25         9        0       1        0
+0x080C3B50        5        9        12        1       0        0
+0x080C3B50       10       14        12        1       1        0

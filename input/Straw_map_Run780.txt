@@ -1,0 +1,4 @@
+Plane      Group   Crate#         Slot   Ch_Lo    Ch_hi
+=======================================================
+BOT_OLD    0       0x07a959b4        2       0       63
+TOP_NEW    0       0x07a959b4       18       0       63
