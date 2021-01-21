@@ -16,6 +16,7 @@ Root macros are located in macro/ directory:
    2. standDigitsToHits.C -- create hits from digits
    3. DchDigitsAnalysisHist.C -- read Straw Digits and builds some histograms (saved at macro/pictures)
    4. SiliconDigitsAnalysisHist.C -- read Silicon Digits and builds some histograms (saved at macro/pictures)
+   5. SiliconHitsAnalysisHist.C -- read Silicon Hits and builds some histograms (saved at macro/pictures)
 
 
 # Documentation
@@ -25,4 +26,5 @@ There is no documentation on MiniSPD software yet.
 # Contacts
 
 The SPD Software Coordinator: Alexey Zhemchugov [zhemchugov@jinr.ru]
+
 This MiniSPD software developer: Alexander Gribowski [grias1994@gmail.com]
