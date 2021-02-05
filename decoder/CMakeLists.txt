@@ -19,7 +19,6 @@ Include_Directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
  ${ROOT_LIBRARY_DIR}
- ${FAIRROOT_LIBRARY_DIR}
 )
  
 link_directories(${LINK_DIRECTORIES})
@@ -40,6 +39,6 @@ Set(HEADERS)
 
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES Core Base Hist Tree BmnData)
+Set(DEPENDENCIES Hist Tree BmnData)
 
 GENERATE_LIBRARY()

@@ -11,8 +11,6 @@ include_directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
-${FAIRROOT_LIBRARY_DIR}
-
 ) 
 
 link_directories( ${LINK_DIRECTORIES})
@@ -38,6 +36,6 @@ set(HEADERS
 
 Set(LINKDEF StandHitsProducerLinkDef.h)
 Set(LIBRARY_NAME StandHitsProducer)
-Set(DEPENDENCIES Core Base BmnData)
+Set(DEPENDENCIES BmnData)
 
 GENERATE_LIBRARY()

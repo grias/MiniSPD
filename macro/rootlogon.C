@@ -96,7 +96,6 @@ void LoadIncludes()
   cout << "load includes  ... ";
 
   gROOT->ProcessLine(".include $SIMPATH/include/");
-  gROOT->ProcessLine(".include $FAIRROOTPATH/include/");
   
   gROOT->ProcessLine(".include ../bmndata/"); 
   gROOT->ProcessLine(".include ../decoder"); 
