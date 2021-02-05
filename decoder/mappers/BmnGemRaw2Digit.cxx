@@ -108,17 +108,6 @@ BmnGemRaw2Digit::BmnGemRaw2Digit(Int_t period, Int_t run, vector<UInt_t> vSer, T
     }
 }
 
-// BmnStatus BmnGemRaw2Digit::ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod) { //COMMENTED
-//     Int_t size = 0;
-//     UniDbDetectorParameter* par = UniDbDetectorParameter::GetDetectorParameter("GEM", parName, GetPeriod(), GetRun());
-//     IIStructure* iiArr;
-//     if (par != NULL) par->GetIIArray(iiArr, size);
-//     delete par;
-//     for (Int_t i = 0; i < size; ++i)
-//         m[iiArr[i].int_2] = BmnGemMap(iiArr[i].int_1, lay, mod);
-//     delete[] iiArr;
-// }
-
 BmnGemRaw2Digit::~BmnGemRaw2Digit() {
     if (fSmall) delete[] fSmall;
     if (fMid) delete[] fMid;
