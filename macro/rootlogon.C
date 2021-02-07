@@ -98,6 +98,7 @@ void LoadIncludes()
   gROOT->ProcessLine(".include $SIMPATH/include/");
   
   gROOT->ProcessLine(".include ../bmndata/"); 
+  gROOT->ProcessLine(".include ../standdata/"); 
   gROOT->ProcessLine(".include ../decoder"); 
   gROOT->ProcessLine(".include ../hitproducer"); 
   

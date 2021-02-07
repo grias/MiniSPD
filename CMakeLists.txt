@@ -120,6 +120,7 @@ ENDIF(HAS_CXX11_SHAREDPOINTER)
 # the project's entire directory structure.
 
 add_subdirectory (bmndata)
+add_subdirectory (standdata)
 add_subdirectory (decoder)
 add_subdirectory (hitproducer)
 

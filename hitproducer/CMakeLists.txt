@@ -3,6 +3,7 @@ ${ROOT_INCLUDE_DIR}
 ${BASE_INCLUDE_DIRECTORIES}
 ${CMAKE_SOURCE_DIR}/bmndata
 ${CMAKE_SOURCE_DIR}/bmndata/digits
+${CMAKE_SOURCE_DIR}/standdata
 ${CMAKE_SOURCE_DIR}/hitproducer
 )
 
@@ -21,7 +22,6 @@ set(SRCS
     StandSiliconGeoMapper.cxx
     StandSiliconCluster.cxx
     StandClustersContainer.cxx
-    StandSiliconHit.cxx
 )
 
 set(HEADERS
@@ -30,12 +30,11 @@ set(HEADERS
     StandSiliconGeoMapper.h
     StandSiliconCluster.h
     StandClustersContainer.h
-    StandSiliconHit.h
 )
 
 
 Set(LINKDEF StandHitsProducerLinkDef.h)
 Set(LIBRARY_NAME StandHitsProducer)
-Set(DEPENDENCIES BmnData)
+Set(DEPENDENCIES BmnData StandData)
 
 GENERATE_LIBRARY()

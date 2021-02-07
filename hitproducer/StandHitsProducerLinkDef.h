@@ -8,12 +8,7 @@
 #pragma link C++ class StandIOManager+;
 #pragma link C++ class StandSiliconGeoMapper+;
 
-
 #pragma link C++ class StandSiliconCluster+;
 #pragma link C++ class StandClustersContainer+;
-#pragma link C++ class StandSiliconHit+;
-
-
-
 
 #endif
