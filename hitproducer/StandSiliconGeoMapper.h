@@ -3,6 +3,7 @@
 
 #include <TObject.h>
 
+
 class StandSiliconGeoMapper : public TObject
 {
 
@@ -17,8 +18,38 @@ private:
 
     static constexpr Double_t fTangentOfStripsYSlope = 0.0437;
 
-
-
     ClassDef(StandSiliconGeoMapper, 1)
 };
+
+// class StandSiliconGeoMapperX
+// {
+// public:
+//     static StandSiliconGeoMapperX *Instance()
+//     {
+//         return (gInstance) ? gInstance : new StandSiliconGeoMapperX();
+//     }
+//     StandSiliconGeoMapperX();
+//     ~StandSiliconGeoMapperX();
+
+// private:
+//     static StandSiliconGeoMapperX *gInstance;
+// };
+
+// StandSiliconGeoMapperX::StandSiliconGeoMapperX()
+// {
+//     if (gInstance)
+//     {
+//         std::cout << "<StandSiliconGeoMapperX::StandSiliconGeoMapperX> Singleton instance already exists."
+//              << std::endl;
+//         return;
+//     }
+//     gInstance = this;
+    
+//     return;
+// }
+
+// StandSiliconGeoMapperX::~StandSiliconGeoMapperX()
+// {
+// }
+
 #endif // STANDSILICONGEOMAPPER_H

@@ -464,7 +464,8 @@ BmnStatus BmnRawDataDecoder::Process_ADC64WR(UInt_t *d, UInt_t len, UInt_t seria
 
                 TClonesArray& ar_adc = *arr;
                 if (iCh >= 0 && iCh < kNCH) {
-                    //			printf("ns == %d, serial == 0x%0x, chan == %d\n", ns, serial, iCh);
+                    if (kVERBOSE_MODE)
+                    printf("ns == %d, serial == 0x%0x, chan == %d\n", ns, serial, iCh);
                     new(ar_adc[arr->GetEntriesFast()]) BmnADCDigit(serial, iCh, ns, val);
                 }
                 i += (ns / 2); //skip words (we've processed them)
@@ -914,7 +915,6 @@ BmnStatus BmnRawDataDecoder::InitDecoder() {
         ecal = new TClonesArray("BmnECALDigit");
         fDigiTree->Branch("ECAL", &ecal);
         fECALMapper = new BmnECALRaw2Digit(fECALMapFileName, fRootFileName, fECALCalibrationFileName);
-        //fECALMapper->print();
     }
 
     fPedEvCntr = 0; // counter for pedestal events between two spills
