@@ -14,3 +14,4 @@ cd $SOURCEDIR/macro
 root -b -q "standDataToRoot.C(\"mpd_run_Straw_stand_$run.data\")"
 root -b -q "standDigitsToHits.C($run, -1)"
 root -b -q "SiliconHitsAnalysisHist.C($run, 0)"
+cd $SOURCEDIR/macro
