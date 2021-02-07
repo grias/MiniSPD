@@ -121,6 +121,7 @@ ENDIF(HAS_CXX11_SHAREDPOINTER)
 
 add_subdirectory (bmndata)
 add_subdirectory (standdata)
+add_subdirectory (common)
 add_subdirectory (decoder)
 add_subdirectory (hitproducer)
 
