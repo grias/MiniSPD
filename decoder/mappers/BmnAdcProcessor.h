@@ -34,6 +34,7 @@ public:
     virtual ~BmnAdcProcessor();
 
     BmnStatus RecalculatePedestals();
+    void ReadPedestalsFromFile();
     Double_t CalcCMS(Double_t* samples, Int_t size);
 
     Double_t**** GetPedData() {

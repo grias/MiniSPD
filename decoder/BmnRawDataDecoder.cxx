@@ -65,6 +65,7 @@ BmnRawDataDecoder::BmnRawDataDecoder() {
     fEvForPedestals = N_EV_FOR_PEDESTALS;
     fBmnSetup = kBMNSETUP;
     fT0Map = NULL;
+    fIsPedestalRun = kFALSE;
 }
 
 BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t period) {
@@ -120,6 +121,7 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fEvForPedestals = N_EV_FOR_PEDESTALS;
     fBmnSetup = kBMNSETUP;
     fT0Map = NULL;
+    fIsPedestalRun = kFALSE;
     //InitMaps();
 }
 
@@ -284,9 +286,15 @@ BmnStatus BmnRawDataDecoder::ProcessEvent(UInt_t *d, UInt_t len) {
     BmnEventType evType = kBMNPAYLOAD;
 
     while (idx < len) {
-        // if (fEventId<501) evType=kBMNPEDESTAL; [CHANGED]
-        // else evType = kBMNPAYLOAD;
-        evType = kBMNPAYLOAD;
+        // if (fEventId<501) evType=kBMNPEDESTAL;
+        if (fIsPedestalRun) 
+        {
+            evType=kBMNPEDESTAL;
+        }
+        else
+        {
+            evType = kBMNPAYLOAD;
+        }
 
         UInt_t serial = d[idx++];
         UInt_t id = (d[idx] >> 24);
@@ -725,34 +733,45 @@ BmnStatus BmnRawDataDecoder::DecodeDataToDigi() {
     InitDecoder();
     BmnEventType curEventType = kBMNPAYLOAD;
     BmnEventType prevEventType = curEventType;
-
+   
     if (fGemMapper || fSiliconMapper) {
-        printf("\n[INFO]");
-        printf(  " Collecting data for ADC pedestals calculation:\n"  );
-        printf("\tNumber of requested pedestal events is ");
-        printf(  "%d\n"  , fEvForPedestals);
-        for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
-            DrawBar(fPedEvCntr, fEvForPedestals);
-            fRawTree->GetEntry(iEv);
+        if (fIsPedestalRun)
+        {
+            printf("\n[INFO]");
+            printf(  " Collecting data for ADC pedestals calculation:\n"  );
+            printf("\tNumber of requested pedestal events is ");
+            printf(  "%d\n"  , fEvForPedestals);
+            for (UInt_t iEv = 0; iEv < fNevents; ++iEv) {
+                DrawBar(fPedEvCntr, fEvForPedestals);
+                fRawTree->GetEntry(iEv);
 
-            BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
-            if (!headDAQ) continue;
-            curEventType = headDAQ->GetType();
+                BmnEventHeader* headDAQ = (BmnEventHeader*) eventHeaderDAQ->At(0);
+                if (!headDAQ) continue;
+                curEventType = headDAQ->GetType();
 
-            if (curEventType != kBMNPEDESTAL) continue; // [CHANGED]
-            if (fPedEvCntr != fEvForPedestals - 1) {
                 CopyDataToPedMap(adc32, adc128, fPedEvCntr);
                 fPedEvCntr++;
-            } else break;
-        }
-        if (fPedEvCntr != fEvForPedestals - 1) {
-            printf(  "\n[WARNING]"  );
-            printf(" Not enough pedestal events (%d instead of %d)\n", fPedEvCntr, fEvForPedestals);
-        }
-        if (fGemMapper) fGemMapper->RecalculatePedestals();
-        if (fSiliconMapper) fSiliconMapper->RecalculatePedestals();
-        fPedEvCntr = 0;
+                if (fPedEvCntr >= fEvForPedestals) break;                
+            }
+            if (fPedEvCntr < fEvForPedestals) {
+                printf(  "\n[WARNING]"  );
+                printf(" Not enough pedestal events (%d instead of %d)\n", fPedEvCntr, fEvForPedestals);
+            }
+            if (fGemMapper) fGemMapper->RecalculatePedestals();
+            if (fSiliconMapper) fSiliconMapper->RecalculatePedestals();
+            fPedEvCntr = 0;
 
+            printf("[INFO] PEDESTALS CALCULATED. PROCESS TREMINATED!");
+            return kBMNSUCCESS;
+        } 
+        else
+        {
+            printf("\n[INFO]");
+            printf(  " Reading pedestals from file\n"  );
+            if (fGemMapper) fGemMapper->ReadPedestalsFromFile();
+            if (fSiliconMapper) fSiliconMapper->ReadPedestalsFromFile();
+        }
+        
         UInt_t nEvForNoiseCorrection = 10000;
         printf("\n[INFO]");
         printf(  " Clear noisy channels:\n"  );

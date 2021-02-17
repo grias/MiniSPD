@@ -234,6 +234,10 @@ public:
         return (nSmpl == 128) ? 1542 : 1992;
     }
 
+    void SetIfPedestalRun(Bool_t ifPed) {
+        this->fIsPedestalRun = ifPed;
+    } 
+
 private:
 
     //9 bits correspond to detectors which we need to decode
@@ -341,6 +345,8 @@ private:
     map<UInt_t, Long64_t> fTimeShifts;
     Double_t fT0Time; //ns
     Double_t fT0Width; //ns
+
+    Bool_t fIsPedestalRun;
 
     BmnStatus GetT0Info(Double_t& t0time, Double_t &t0width);
     BmnStatus ProcessEvent(UInt_t *data, UInt_t len);
