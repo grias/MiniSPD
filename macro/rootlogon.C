@@ -99,8 +99,10 @@ void LoadIncludes()
   
   gROOT->ProcessLine(".include ../bmndata/"); 
   gROOT->ProcessLine(".include ../standdata/"); 
+  gROOT->ProcessLine(".include ../common");
   gROOT->ProcessLine(".include ../decoder"); 
   gROOT->ProcessLine(".include ../hitproducer"); 
+  gROOT->ProcessLine(".include ../tracksproducer"); 
   
   cout << " Ok " << endl;
 }  

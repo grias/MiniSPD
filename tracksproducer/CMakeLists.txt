@@ -2,6 +2,8 @@ set(INCLUDE_DIRECTORIES
 ${ROOT_INCLUDE_DIR} 
 ${BASE_INCLUDE_DIRECTORIES}
 ${CMAKE_SOURCE_DIR}/standdata
+${CMAKE_SOURCE_DIR}/common
+${CMAKE_SOURCE_DIR}/tracksproducer
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -14,17 +16,15 @@ ${ROOT_LIBRARY_DIR}
 link_directories( ${LINK_DIRECTORIES})
 
 set(SRCS
-    StandSiliconHit.cxx
-    StandSiliconTrack.cxx
+    StandTracksProducer.cxx
 )
 
 set(HEADERS
-    StandSiliconHit.h
-    StandSiliconTrack.h
+    StandTracksProducer.h
 )
 
-
-Set(LINKDEF StandDataLinkDef.h)
-Set(LIBRARY_NAME StandData)
+Set(LINKDEF StandTracksProducerLinkDef.h)
+Set(LIBRARY_NAME StandTracksProducer)
+Set(DEPENDENCIES StandData StandCommon Minuit)
 
 GENERATE_LIBRARY()

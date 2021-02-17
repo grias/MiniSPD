@@ -2,7 +2,7 @@
 #define STANDSILICONGEOMAPPER_H
 
 #include <TObject.h>
-
+#include <TVector3.h>
 
 class StandSiliconGeoMapper : public TObject
 {
@@ -12,6 +12,8 @@ public:
     static Double_t CalculateLocalY(Double_t localX, Double_t stripOffsetY);
     static Bool_t IsInSensitiveRange(Int_t station, Double_t localY);
 
+    static TVector3 CalculateGlobalCoordinatesForHit(Int_t station, Int_t module, Int_t localX, Int_t localY);
+
 private:
     StandSiliconGeoMapper();
     ~StandSiliconGeoMapper();
@@ -20,36 +22,5 @@ private:
 
     ClassDef(StandSiliconGeoMapper, 1)
 };
-
-// class StandSiliconGeoMapperX
-// {
-// public:
-//     static StandSiliconGeoMapperX *Instance()
-//     {
-//         return (gInstance) ? gInstance : new StandSiliconGeoMapperX();
-//     }
-//     StandSiliconGeoMapperX();
-//     ~StandSiliconGeoMapperX();
-
-// private:
-//     static StandSiliconGeoMapperX *gInstance;
-// };
-
-// StandSiliconGeoMapperX::StandSiliconGeoMapperX()
-// {
-//     if (gInstance)
-//     {
-//         std::cout << "<StandSiliconGeoMapperX::StandSiliconGeoMapperX> Singleton instance already exists."
-//              << std::endl;
-//         return;
-//     }
-//     gInstance = this;
-    
-//     return;
-// }
-
-// StandSiliconGeoMapperX::~StandSiliconGeoMapperX()
-// {
-// }
 
 #endif // STANDSILICONGEOMAPPER_H

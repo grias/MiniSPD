@@ -124,5 +124,6 @@ add_subdirectory (standdata)
 add_subdirectory (common)
 add_subdirectory (decoder)
 add_subdirectory (hitproducer)
+add_subdirectory (tracksproducer)
 
 WRITE_CONFIG_FILE(config.sh)
