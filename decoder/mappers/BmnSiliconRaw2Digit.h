@@ -37,13 +37,8 @@ public:
     BmnStatus FillEvent(TClonesArray *adc, TClonesArray *sts);
     BmnStatus FillProfiles(TClonesArray *adc);
     BmnStatus FillNoisyChannels();
-    vector<UInt_t> GetSerials() {
-        return fSerials;
-    }
 
 private:
-
-    vector<UInt_t> fSerials;
     vector<BmnSiliconMapping> fMap;
     Int_t fEventId;
     TString fMapFileName;

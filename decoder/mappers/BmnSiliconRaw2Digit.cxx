@@ -216,10 +216,6 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     UInt_t ch = adcDig->GetChannel();
     UInt_t ser = adcDig->GetSerial();
 
-    Int_t iSer = -1;
-    for (iSer = 0; iSer < GetSerials().size(); ++iSer)
-        if (ser == GetSerials()[iSer]) break;
-
     BmnSiliconDigit candDig[nSmpl];
 
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
@@ -246,19 +242,18 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     Double_t CMS = CalcCMS(signals, nOk);
     Double_t*** vPed = GetPedestals();
     Double_t*** vPedRMS = GetPedestalsRMS();
+    // Double_t baseTresholds[3] = {170., 150., 150.};
+    Double_t baseTresholds[3] = {220., 120., 120.};
+    // Double_t baseTresholds[3] = {0., 0., 0.};
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-        if ((candDig[iSmpl]).GetStation() == -1) continue;
+        auto candStation = (candDig[iSmpl]).GetStation();
+        if (candStation == -1) continue;
 
         BmnSiliconDigit * dig = &candDig[iSmpl];
-        Double_t ped = vPed[iSer][ch][iSmpl];
+        Double_t ped = vPed[candStation][ch][iSmpl];
         Double_t sig = Abs(dig->GetStripSignal() - ped - CMS);
         Double_t threshold = 0.0;
-        if ((candDig[iSmpl]).GetStation() == 0){
-          threshold = 170 + 3*vPedRMS[iSer][ch][iSmpl];
-        }
-        //threshold = 100 + 3*vPedRMS[iSer][ch][iSmpl];
-        else if ((candDig[iSmpl]).GetStation() == 1) threshold = 150 + 3*vPedRMS[iSer][ch][iSmpl];
-        else  threshold = 150 + 3*vPedRMS[iSer][ch][iSmpl];//50;//120;//160;
+        threshold = baseTresholds[candStation] + 3*vPedRMS[candStation][ch][iSmpl];
         if (sig < threshold || sig == 0.0 ) continue;
         if (doFill) {
             fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
