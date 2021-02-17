@@ -3,8 +3,6 @@
 
 #include <TObject.h>
 #include <TString.h>
-#include <TFile.h>
-#include <TTree.h>
 #include <TClonesArray.h>
 
 #include "BmnSiliconDigit.h"
@@ -44,8 +42,8 @@ private:
     void GetInputData();
     void GetOutputData();
 
-    void ProduceHitsFromEvents(Int_t iEventStart, Int_t iEventEnd);
-    void ProduceHitsFromEvent(Int_t iEvent);
+    void ProduceHitsFromEvent(Int_t event);
+    void ProduceHitsFromEvents(Int_t startEvent, Int_t endEvent);
 
     void ProcessSiliconDigitsIntoClusters(StandClustersContainer &clustersContainer);
     StandSiliconCluster* ProcessSiliconDigitIntoCluster(BmnSiliconDigit* siliconDigit);

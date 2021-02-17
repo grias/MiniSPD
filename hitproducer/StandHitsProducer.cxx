@@ -192,10 +192,23 @@ void StandHitsProducer::ProcessSiliconClustersIntoHits(StandClustersContainer &c
         }
 
         for (auto &&clusterX : clustersSideX)
-        for (auto &&clusterY : clustersSideY)
         {
-            ProcessSiliconClustersIntoHit(clusterX, clusterY);
+            if (clusterX->GetClusterSize() > 4)
+            {
+                continue;
+            }
+
+            for (auto &&clusterY : clustersSideY)
+            {
+                if (clusterY->GetClusterSize() > 4)
+                {
+                    continue;
+                }
+            
+                ProcessSiliconClustersIntoHit(clusterX, clusterY);
+            }
         }
+        
     }
 }
 
