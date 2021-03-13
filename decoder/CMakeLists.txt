@@ -39,6 +39,6 @@ Set(HEADERS)
 
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES Hist Tree BmnData)
+Set(DEPENDENCIES Hist Tree BmnData Gpad)
 
 GENERATE_LIBRARY()

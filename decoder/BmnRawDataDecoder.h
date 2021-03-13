@@ -15,6 +15,7 @@
 #include "TClonesArray.h"
 #include <iostream>
 #include <vector>
+#include <array>
 #include <fstream>
 #include "BmnGemRaw2Digit.h"
 #include "BmnGemStripDigit.h"
@@ -98,23 +99,12 @@ public:
     BmnStatus DecodeDataToDigi();
     BmnStatus InitConverter(TString FileName);
     BmnStatus InitConverter();
-    BmnStatus InitConverter(deque<UInt_t> *dq);
     BmnStatus InitDecoder();
     BmnStatus InitMaps();
     void ResetDecoder(TString file);
     BmnStatus DisposeDecoder();
-    BmnStatus wait_stream(deque<UInt_t> *que, Int_t len, UInt_t limit = WAIT_LIMIT);
-    BmnStatus wait_file(Int_t len, UInt_t limit = WAIT_LIMIT);
     BmnStatus TakeDataWordShort(UChar_t n, UInt_t *d, UInt_t i, Short_t* valI);
     BmnStatus TakeDataWordUShort(UChar_t n, UInt_t *d, UInt_t i, UShort_t* valU);
-
-    void SetQue(deque<UInt_t> *v) {
-        fDataQueue = v;
-    }
-
-    deque<UInt_t> *GetQue() {
-        return fDataQueue;
-    }
 
     DigiArrays GetDigiArraysObject() {
         //        fDigiTree->GetEntry(GetEventId());
@@ -243,7 +233,8 @@ private:
     //9 bits correspond to detectors which we need to decode
     Bool_t fDetectorSetup[11];
 
-
+    Bool_t IsNewWindow(Int_t nEvent);
+    void CalculateWindowBoundaries(Int_t &windowBegin, Int_t &windowEnd, Int_t nEvent);
 
     Int_t GetRunIdFromFile(TString name);
     vector<UInt_t> fSiliconSerials; //list of serial id for Silicon
@@ -339,7 +330,6 @@ private:
     Bool_t fPedEnough;
     GemMapStructure* fGemMap;
     TriggerMapStructure* fT0Map;
-    deque<UInt_t> *fDataQueue;
 
     //Map to store pairs <Crate serial> - <crate time - T0 time>
     map<UInt_t, Long64_t> fTimeShifts;
@@ -358,7 +348,6 @@ private:
     BmnStatus FillTQDC(UInt_t *d, UInt_t serial, UInt_t slot, UInt_t modId, UInt_t &idx);
     BmnStatus FillSYNC(UInt_t *d, UInt_t serial, UInt_t &idx);
     BmnStatus FillTimeShiftsMap();
-    BmnStatus FillTimeShiftsMapNoDB(UInt_t t0serial);
 
     BmnStatus CopyDataToPedMap(TClonesArray* adcGem, TClonesArray* adcSil, UInt_t ev);
 };

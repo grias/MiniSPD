@@ -6,6 +6,7 @@
 #include "TClonesArray.h"
 #include <iostream>
 #include "TH1F.h"
+#include "TH1D.h"
 #include "BmnADCDigit.h"
 #include "BmnEnums.h"
 #include "TMath.h"
@@ -34,8 +35,8 @@ public:
     BmnSiliconRaw2Digit();
     virtual ~BmnSiliconRaw2Digit();
 
-    BmnStatus FillEvent(TClonesArray *adc, TClonesArray *sts);
-    BmnStatus FillProfiles(TClonesArray *adc);
+    BmnStatus FillEvent(TClonesArray *adc, TClonesArray *sts, Int_t iEv);
+    BmnStatus FillProfiles(TClonesArray *adc, Int_t iEv);
     BmnStatus FillNoisyChannels();
 
 private:
@@ -44,10 +45,19 @@ private:
     TString fMapFileName;
 
     TH1F**** fSigProf;
+    TH1D* fSig;
+    TH1D* fSigMp;
+    TH1D* fSigMpMc;
+    TH1D* fPed;
+    TH1D* fSigma;
+    TH1D* fSigmaX3;
+    TH1D* fClearLine;
+    TH1D* fClearLineX3;
+    TH1D* fClearLineX6;
     Bool_t**** fNoisyChannels;
 
     BmnStatus ReadMapFile();
-    void ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon, Bool_t doFill);
+    void ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon, Bool_t doFill, Int_t iEv);
 
     ClassDef(BmnSiliconRaw2Digit, 1);
 };

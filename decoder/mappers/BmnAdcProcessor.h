@@ -34,9 +34,11 @@ public:
     virtual ~BmnAdcProcessor();
 
     BmnStatus RecalculatePedestals();
+    BmnStatus RecalculatePedestalsX();
     void ReadPedestalsFromFile();
     Double_t CalcCMS(Double_t* samples, Int_t size);
-
+    Double_t CalcCMS(Int_t iCr, Int_t iCh, Int_t iEv);
+    Double_t CalcCMS(Int_t iCr, Int_t iCh, vector<Double_t> vSamples);
     Double_t**** GetPedData() {
         return fPedDat;
     }
@@ -53,6 +55,10 @@ public:
         fNChannels = n;
     }
 
+    void SetNEvents(Int_t n) {
+        fNEvents = n;
+    }
+
     Double_t GetPedestal(Int_t ser, Int_t ch, Int_t smpl) {
         return fPedVal[ser][ch][smpl];
     }
@@ -63,6 +69,10 @@ public:
 
     Double_t*** GetPedestalsRMS() {
         return fPedRms;
+    }
+
+    Double_t*** GetNoiseLvls() {
+        return fNoiseLvl;
     }
 
     Int_t GetPeriod() {
@@ -86,6 +96,8 @@ public:
 
 
 private:
+    void ClearPedestals();
+    void WritePedFile();
 
     vector<UInt_t> fSerials; //list of serial id for ADC-detector
 
@@ -96,11 +108,13 @@ private:
     Int_t fNSerials;
     Int_t fNSamples;
     Int_t fNChannels;
+    Int_t fNEvents;
     TString fDetName; //it's used for .txt files name 
 
     Double_t**** fPedDat; //data set to calculate pedestals
     Double_t*** fPedVal; //set of calculated pedestals
     Double_t*** fPedRms; // set of calculated pedestal errors
+    Double_t*** fNoiseLvl; // set of calculated noise levems
     UInt_t*** fAdcProfiles;
 
     ClassDef(BmnAdcProcessor, 1);

@@ -1,4 +1,5 @@
 #include "BmnSiliconRaw2Digit.h"
+#include "TCanvas.h"
 
 BmnSiliconRaw2Digit::BmnSiliconRaw2Digit() {
     fEventId = -1;
@@ -18,6 +19,18 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
     const Int_t kNLayers = 2;
     const Int_t kNStrips = 640;
 
+    Int_t nEventsInHist = 12000;
+
+    fSig = new TH1D("h1_sig", "Raw signal", nEventsInHist, 0-0.5, nEventsInHist-1-0.5);
+    fSigMp = new TH1D("h1_sig_mped", "Raw signal minus pedestal", nEventsInHist, 0-0.5, nEventsInHist-1-0.5);
+    fSigMpMc = new TH1D("h1_sig_mped_mcms", "Raw signal minus pedestal and CMS", nEventsInHist, 0-0.5, nEventsInHist-1-0.5);
+    fPed = new TH1D("h1_ped", "Pedestal", nEventsInHist, 0-0.5, nEventsInHist-1-0.5);
+    fSigma = new TH1D("h1_sigma", "Sigma", nEventsInHist, 0-0.5, nEventsInHist-1-0.5);
+    fSigmaX3 = new TH1D("h1_sigma_x3", "Sigma*3", nEventsInHist, 0-0.5, nEventsInHist-1-0.5);
+    fClearLine = new TH1D("h1_cut", "Noise level", nEventsInHist, 0-0.5, nEventsInHist-1-0.5);
+    fClearLineX3 = new TH1D("h1_cut_x3", "Noise level *3", nEventsInHist, 0-0.5, nEventsInHist-1-0.5);
+    fClearLineX6 = new TH1D("h1_cut_x6", "Noise level *6", nEventsInHist, 0-0.5, nEventsInHist-1-0.5);
+    
     fSigProf = new TH1F***[kNStations];
     fNoisyChannels = new Bool_t***[kNStations];
     for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
@@ -39,6 +52,31 @@ BmnSiliconRaw2Digit::BmnSiliconRaw2Digit(Int_t period, Int_t run, vector<UInt_t>
 }
 
 BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
+
+    // TCanvas *canvas = new TCanvas("canvas", "", 1200, 800);
+    // fSigMpMc->SetLineColor(8);
+    // fSigMpMc->Draw("HIST"); // to make right boundaries
+    // fSigMp->SetLineColor(9);
+    // fSigMp->Draw("HIST SAME");
+    // fSig->SetLineColor(42);
+    // fSig->Draw("HIST SAME");
+    // fSigMpMc->Draw("HIST SAME"); // draw over other hists
+    // fPed->SetLineColor(2);
+    // fPed->Draw("HIST SAME");
+    // fSigma->SetLineColor(6);
+    // fSigma->Draw("HIST SAME");
+    // fSigmaX3->SetLineColor(28);
+    // fSigmaX3->Draw("HIST SAME");
+    // fClearLine->SetLineColor(7);
+    // fClearLine->Draw("HIST SAME");
+    // fClearLineX3->SetLineColor(37);
+    // fClearLineX3->Draw("HIST SAME");
+    // fClearLineX6->SetLineColor(41);
+    // fClearLineX6->Draw("HIST SAME");
+    // TString name = TString(getenv("VMCWORKDIR")) + TString("/macro/pictures/") + TString("h1_ch_sig.png");
+    // canvas->SaveAs(name);
+
+
     const Int_t kNStations = 3;
     const Int_t kNModules = 4;
     const Int_t kNLayers = 2;
@@ -57,6 +95,16 @@ BmnSiliconRaw2Digit::~BmnSiliconRaw2Digit() {
     }
     delete[] fNoisyChannels;
     delete[] fSigProf;
+    
+    delete fSig;
+    delete fSigMp;
+    delete fSigMpMc;
+    delete fPed;
+    delete fSigma;
+    delete fSigmaX3;
+    delete fClearLine;
+    delete fClearLineX3;
+    delete fClearLineX6;
 }
 
 BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
@@ -90,25 +138,31 @@ BmnStatus BmnSiliconRaw2Digit::ReadMapFile() {
         record.station = station;
         fMap.push_back(record);
     }
+
+    // for (auto &&map : fMap)
+    // {
+    //     printf("<BmnSiliconRaw2Digit::ReadMapFile> iStation: %d, serial: %d\n", map.station, map.serial);
+    // }
+    
 }
 
-BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silicon) {
+BmnStatus BmnSiliconRaw2Digit::FillEvent(TClonesArray *adc, TClonesArray *silicon, Int_t iEv) {
     fEventId++;
     for (auto it : fMap)
         for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
             if (adcDig->GetSerial() == it.serial && (adcDig->GetChannel() >= it.channel_low && adcDig->GetChannel() <= it.channel_high)) {
-                ProcessDigit(adcDig, &it, silicon, kFALSE);
+                ProcessDigit(adcDig, &it, silicon, kFALSE, iEv);
             }
         }
 }
 
-BmnStatus BmnSiliconRaw2Digit::FillProfiles(TClonesArray *adc) {
+BmnStatus BmnSiliconRaw2Digit::FillProfiles(TClonesArray *adc, Int_t iEv) {
     for (auto it : fMap)
         for (Int_t iAdc = 0; iAdc < adc->GetEntriesFast(); ++iAdc) {
             BmnADCDigit* adcDig = (BmnADCDigit*) adc->At(iAdc);
             if (adcDig->GetSerial() == it.serial && (adcDig->GetChannel() >= it.channel_low && adcDig->GetChannel() <= it.channel_high)) {
-                ProcessDigit(adcDig, &it, NULL, kTRUE);
+                ProcessDigit(adcDig, &it, NULL, kTRUE, iEv);
             }
         }
 }
@@ -205,13 +259,12 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
     for (auto it : noisymap)
     {
         fNoisyChannels[it.station][it.module][it.layer][it.strip] = kTRUE;
-        // printf("!!! %d %d %d %d\n",it.station, it.module, it.layer, it.strip);
     }
 
 
 }
 
-void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon, Bool_t doFill) {
+void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon, Bool_t doFill, Int_t iEv) {
     const UInt_t nSmpl = adcDig->GetNSamples();
     UInt_t ch = adcDig->GetChannel();
     UInt_t ser = adcDig->GetSerial();
@@ -224,22 +277,34 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         dig.SetModule(silM->module);
         dig.SetStripLayer(silM->layer);
         dig.SetStripNumber((ch - silM->channel_low) * nSmpl + 1 + iSmpl);
-        Double_t sig = (kTRUE) ? ((Double_t) ((adcDig->GetShortValue())[iSmpl] / 16)) : ((Double_t) ((adcDig->GetUShortValue())[iSmpl]/ 16));
-        //if (sig>2048) sig-=2048;
-        //else sig+=2048;
+        // Double_t sig = Abs((Double_t) ((adcDig->GetShortValue())[iSmpl] / 16));
+        Double_t sig = (Double_t) ((adcDig->GetShortValue())[iSmpl] / 16);
+        // if (ch == 6 && iSmpl == 15)
+        // printf("from proc: %f\n", sig);
+        // if (silM->station == 2)
+        // {
+        //     printf("Station %d\n", silM->station);
+        // }
         dig.SetStripSignal(sig);
         candDig[iSmpl] = dig;
     }
 
-    Double_t signals[nSmpl];
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) signals[iSmpl] = 0.0;
-    Int_t nOk = 0;
-    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
-        if ((candDig[iSmpl]).GetStripSignal() == 0) continue;
-        signals[iSmpl] = (candDig[iSmpl]).GetStripSignal();
-        nOk++;
+    // Double_t signals[nSmpl];
+    // for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) signals[iSmpl] = 0.0;
+    // Int_t nOk = 0;
+    // for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
+    //     if ((candDig[iSmpl]).GetStripSignal() == 0) continue;
+    //     signals[iSmpl] = (candDig[iSmpl]).GetStripSignal();
+    //     nOk++;
+    // }
+
+    vector<Double_t> vSamples;
+    for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl)
+    {
+        vSamples.push_back((candDig[iSmpl]).GetStripSignal());
     }
-    Double_t CMS = CalcCMS(signals, nOk);
+
+    Double_t*** vNoiseLvl = GetNoiseLvls();
     Double_t*** vPed = GetPedestals();
     Double_t*** vPedRMS = GetPedestalsRMS();
     // Double_t baseTresholds[3] = {170., 150., 150.};
@@ -247,14 +312,46 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
     // Double_t baseTresholds[3] = {0., 0., 0.};
     for (Int_t iSmpl = 0; iSmpl < nSmpl; ++iSmpl) {
         auto candStation = (candDig[iSmpl]).GetStation();
+        // if (ch == 6 && iSmpl == 15)
+        // printf("stat proc: %d\n", candStation);
         if (candStation == -1) continue;
 
         BmnSiliconDigit * dig = &candDig[iSmpl];
+        Double_t CMS = CalcCMS(candStation, ch, vSamples);
         Double_t ped = vPed[candStation][ch][iSmpl];
-        Double_t sig = Abs(dig->GetStripSignal() - ped - CMS);
+        Double_t pedRms = vPedRMS[candStation][ch][iSmpl];
+        // Double_t sig = Abs(dig->GetStripSignal()) - ped - CMS;
+        // Double_t sig = Abs(dig->GetStripSignal() - ped - CMS);
+        Double_t sig = dig->GetStripSignal() - ped - CMS;
+        // Double_t sig = Abs(dig->GetStripSignal());
         Double_t threshold = 0.0;
-        threshold = baseTresholds[candStation] + 3*vPedRMS[candStation][ch][iSmpl];
-        if (sig < threshold || sig == 0.0 ) continue;
+        // threshold = baseTresholds[candStation] + 3*vPedRMS[candStation][ch][iSmpl];
+        Double_t noiseLvl = vNoiseLvl[candStation][ch][iSmpl];
+        threshold = 6*noiseLvl;
+        // if (iEv == 200)
+        // {
+        //     printf("%d %d %d\n", candStation, ch, iSmpl);
+        // }
+        if (candStation == 0 && ch == 6 && iSmpl == 100)
+        {
+            Double_t pedRmsRightSign = dig->GetStripLayer() == 1 ? -pedRms : pedRms;
+            Double_t noiseLvlRightSign = dig->GetStripLayer() == 1 ? -noiseLvl : noiseLvl;
+            fSig->SetBinContent(fSig->FindBin(iEv), dig->GetStripSignal());
+            fSigMp->SetBinContent(fSig->FindBin(iEv), dig->GetStripSignal() - ped);
+            fSigMpMc->SetBinContent(fSig->FindBin(iEv), dig->GetStripSignal() - ped - CMS);
+            fPed->SetBinContent(fSig->FindBin(iEv), ped);
+            fSigma->SetBinContent(fSig->FindBin(iEv), pedRmsRightSign);
+            fSigmaX3->SetBinContent(fSig->FindBin(iEv), pedRmsRightSign*3);
+            fClearLine->SetBinContent(fSig->FindBin(iEv), noiseLvlRightSign);
+            fClearLineX3->SetBinContent(fSig->FindBin(iEv), noiseLvlRightSign*3);
+            fClearLineX6->SetBinContent(fSig->FindBin(iEv), noiseLvlRightSign*6);
+        }
+        
+        if ( sig == 0.0 || (dig->GetStripLayer() == 0 && sig < threshold) || (dig->GetStripLayer() == 1 && sig > -threshold) )
+        {
+            continue;
+        }
+
         if (doFill) {
             fSigProf[dig->GetStation()][dig->GetModule()][dig->GetStripLayer()]->Fill(dig->GetStripNumber());
         } else {
