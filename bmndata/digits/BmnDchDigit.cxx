@@ -10,6 +10,14 @@ BmnDchDigit::BmnDchDigit() {
     fRef = -1;
 }
 
+BmnDchDigit::BmnDchDigit(BmnDchDigit *digit)
+{
+    fTime = digit->fTime;
+    fPlane = digit->fPlane;
+    fWire = digit->fWire;
+    fRef = digit->fRef;
+}
+
 BmnDchDigit::BmnDchDigit(UChar_t iPlane, Short_t iWire, Double_t iTime, Int_t refId) {
     fTime = iTime;
     fPlane = iPlane;

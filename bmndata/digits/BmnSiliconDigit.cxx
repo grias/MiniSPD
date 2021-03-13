@@ -15,6 +15,7 @@ BmnSiliconDigit::BmnSiliconDigit(BmnSiliconDigit* digit) {
     fLayer = digit->fLayer;
     fStrip = digit->fStrip;
     fSignal = digit->fSignal;
+    fIsGoodDigit = digit->fIsGoodDigit;
 }
 
 BmnSiliconDigit::BmnSiliconDigit(Int_t iStation, Int_t iModule, Int_t iLayer, Int_t iStrip, Double_t iSignal) {

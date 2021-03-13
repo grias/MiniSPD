@@ -12,6 +12,8 @@ public:
 /** Default constructor **/
     BmnDchDigit();
 
+    BmnDchDigit(BmnDchDigit *digit);
+
     /** Constructor to use **/
     BmnDchDigit(UChar_t iPlane, Short_t iWire, Double_t iTime, Int_t refId);
 
