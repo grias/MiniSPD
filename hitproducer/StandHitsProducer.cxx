@@ -217,7 +217,7 @@ void StandHitsProducer::ProcessSiliconClustersIntoHit(StandSiliconCluster* clust
     Int_t station = clusterX->GetStation();
     Int_t module = clusterX->GetModule();
     Double_t localX = clusterX->GetLocalCoordinate();
-    Double_t localY = StandSiliconGeoMapper::CalculateLocalY(localX, clusterY->GetLocalCoordinate());
+    Double_t localY = StandSiliconGeoMapper::CalculateLocalY(localX, clusterY->GetLocalCoordinate(), station);
     // std::cout<<clusterY->GetLocalCoordinate() - clusterX->GetLocalCoordinate()<<"\t"<<localY<<std::endl;
 
     if (StandSiliconGeoMapper::IsInSensitiveRange(clusterX->GetStation(), localY))
@@ -250,7 +250,7 @@ void StandHitsProducer::ConfigureInput()
     cout << "-I-<StandHitsProducer::ConfigureInput>" << endl;
 
     fIOManager->SetInputFileName(fInputFileName);
-    fIOManager->RegisterInputBranch("EventHeader", "BmnEventHeader");
+    // fIOManager->RegisterInputBranch("EventHeader", "BmnEventHeader");
     fIOManager->RegisterInputBranch("SILICON", "BmnSiliconDigit");
     fIOManager->RegisterInputBranch("DCH", "BmnDchDigit");
 }
@@ -267,7 +267,7 @@ void StandHitsProducer::ConfigureOutput()
 
 void StandHitsProducer::GetInputData()
 {
-    fInputEventHeader = fIOManager->GetInputDataArray("BmnEventHeader");
+    // fInputEventHeader = fIOManager->GetInputDataArray("BmnEventHeader");
     fSiliconDigitsArray = fIOManager->GetInputDataArray("BmnSiliconDigit");
     fStrawDigitsArray = fIOManager->GetInputDataArray("BmnDchDigit");
 }

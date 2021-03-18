@@ -1,5 +1,6 @@
 #!/bin/bash
 
-rm hstack.root
+rm -f hstack.root
 hadd hstack.root h1_run*
-tbrowser hstack.root
+cd ..
+tbrowser root_files/hstack.root

@@ -12,22 +12,9 @@
 
 
 /*
--------OUTPUT TIPS:
-CREATION:
-fDigiFileOut = new TFile(fDigiFileName, "recreate");
-fDigiTree = new TTree("cbmsim", "bmn_digit");
-
-dch = new TClonesArray("BmnDchDigit");
-fDigiTree->Branch("DCH", &dch);
-
+------- TIPS:
 FILLING:
 new((*arr)[arr->GetEntriesFast()]) BmnDchDigit(map.plane, ch, tm, 0);
-fDigiTree->Fill();
-
-SAVING:
-fDigiTree->Write();
-
-
 */
 
 class StandIOManager
@@ -43,20 +30,23 @@ public:
     void RegisterOutputBranch(TString outputBranchName, TString className) { fOutputBranchesNames.insert({outputBranchName, className}); }
 
     void Init();
+    void InitInput();
+    void InitOutput();
+
     void Finish();
+    void FinishInput();
+    void FinishOutput();
 
     void FillEvent() { fOutputTree->Fill(); }
     void WriteTreeIntoOutputFile() { fOutputTree->Write(); }
-
     
     TClonesArray* GetInputDataArray(TString className);
     TClonesArray* GetOutputDataArray(TString className);
     void ReadInputEvent(Int_t nEvent) { fInputTree->GetEntry(nEvent); }
     void ClearArrays();
     Long64_t GetNumberOfInputEvents() { return fInputTree->GetEntries(); }
-    
 
-    
+    void SetVerboseLevel(Int_t verbose) { fVerbose = verbose; }
 
 private:
     void OpenInputFile();
@@ -66,7 +56,8 @@ private:
     void CreateOutputBranches();
 
 
-    Bool_t fIsInitialized = kFALSE;
+    Bool_t fIsInputInitialized = kFALSE;
+    Bool_t fIsOutputInitialized = kFALSE;
 
     TString fInputFileName;
     TString fOutputFileName;
@@ -82,6 +73,8 @@ private:
 
     std::map<TString, TClonesArray*> fInputDataMap;
     std::map<TString, TClonesArray*> fOutputDataMap;
+
+    Int_t fVerbose = 0;
     
 };
 #endif // IOMANAGER_H

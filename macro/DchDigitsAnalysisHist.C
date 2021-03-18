@@ -44,7 +44,7 @@ void DchDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
     TChain *inChain = new TChain("cbmsim");
     for (auto &&iRunId : runs)
     {
-        inChain->Add(Form("bmn_run%04d_digi.root", iRunId));
+        inChain->Add(Form("data/stand_run%04d_digits.root", iRunId));
     }
 
     // BmnDchDigit branch
@@ -184,7 +184,7 @@ void DchDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
 
     // --- DRAW ------------------------------------------------------------------------
 
-    TString outFileName = Form("stand_run%04d_hists_dch.root", runId);
+    TString outFileName = Form("data/stand_run%04d_hists_dch.root", runId);
     TFile *outputRootFile = new TFile(outFileName, "recreate");
 
     if (drawHistKey == -1)
@@ -214,23 +214,23 @@ void DchDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
         h1OccupancyArr[0]->Draw("SAME");
         h1OccupancyArr[1]->Draw("SAME");
         canvas->BuildLegend();
-        canvas->SaveAs(Form("pictures/h1_run%d_dch_occup.png", runId));
+        canvas->SaveAs(Form("pictures/run%04d_dch_occup.png", runId));
 
         canvas->SetLogy(0);
         h1ClusterArr[0]->Draw();
         h1ClusterArr[1]->Draw("SAME");
         canvas->BuildLegend();
-        canvas->SaveAs(Form("pictures/h1_run%d_dch_clust.png", runId));
+        canvas->SaveAs(Form("pictures/run%04d_dch_clust.png", runId));
         h1Time->SetLineWidth(3);
         h1Time->Draw();
-        canvas->SaveAs(Form("pictures/h1_run%d_dch_time.png", runId));
+        canvas->SaveAs(Form("pictures/run%04d_dch_time.png", runId));
 
         h1TimeSum->Draw();
         h1TimeSum->SetLineWidth(3);
-        canvas->SaveAs(Form("pictures/h1_run%d_dch_timeSum.png", runId));
+        canvas->SaveAs(Form("pictures/run%04d_dch_timeSum.png", runId));
 
         h1TimeSum2->Draw("COL");
-        canvas->SaveAs(Form("pictures/h1_run%d_dch_timeSum2d.png", runId));
+        canvas->SaveAs(Form("pictures/run%04d_dch_timeSum2d.png", runId));
 
         h1TimeOneCh->Scale(100);
         h1TimeOneCh->SetLineWidth(3);
@@ -239,7 +239,7 @@ void DchDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
         h1Time->Draw("HIST SAME");
         h1TimeOneCh->Write();
 
-        canvas->SaveAs(Form("pictures/h1_run%d_dch_timeOneCh.png", runId));
+        canvas->SaveAs(Form("pictures/run%04d_dch_timeOneCh.png", runId));
     }
     else if (drawHistKey >= 0)
     {

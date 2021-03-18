@@ -14,6 +14,8 @@ TH1I* hClustersSizeY;
 TH1D* hAmplitude1;
 TH1D* hAmplitude2;
 
+vector<TH2D *>hStationOccups;
+
 void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
 {
     // --- HIST CREATION -----------------------------------------------------------------
@@ -40,9 +42,18 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
         // Amplitudes
         histName = Form("h2_station%d_mod%d_amplitudes", stationMap[iHist], modMap[iHist]);
         histDiscription = Form("Amplitudes (station %d, module %d);Cluster X amplitude [ae];Cluster Y amplitude [ae]", stationMap[iHist], modMap[iHist]);
-        hist = new TH2D(histName, histDiscription, 103, 170, 1200, 100, 170, 1200);
+        hist = new TH2D(histName, histDiscription, 120, 0, 1200, 120, 0, 1200);
         hAmplitudesMap.insert({key, hist});
     }
+
+    for (int iStation = 0; iStation < 3; iStation++)
+    {
+        histName = Form("h2_station%d_occupancy", iStation);
+        histDiscription = Form("Station %d occupancy;X [mm];Y [mm]", iStation);
+        hist = new TH2D(histName, histDiscription, 100, 200, 200, 100, -200, 200);
+        hStationOccups.push_back(hist);
+    }
+    
 
     hClustersSizeX = new TH1I("h1_clusters_x", "Cluster size;n strips", 19, 1-0.5, 20-0.5);
     hClustersSizeY = new TH1I("h1_clusters_y", "Cluster size;n strips", 19, 1-0.5, 20-0.5);
@@ -62,7 +73,7 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
         inChain = new TChain("cbmsim");
         for (auto &&iRunId : runs)
         {
-            TString inFileName = Form("stand_run%04d_hits.root", iRunId);
+            TString inFileName = Form("data/stand_run%04d_hits.root", iRunId);
             inChain->Add(inFileName);
         }
 
@@ -74,7 +85,7 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
     }
     else
     {
-        TString inFileName = Form("stand_run%04d_hits.root", runId);
+        TString inFileName = Form("data/stand_run%04d_hits.root", runId);
         TFile *inFile = new TFile(inFileName);
         if (!inFile)
             return;
@@ -117,8 +128,8 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
             Int_t module = siHit->GetModule();
             Double_t localX = siHit->GetLocalX();
             Double_t localY = siHit->GetLocalY();
-            Double_t amplitudeX = siHit->GetAmplitudeX();
-            Double_t amplitudeY = siHit->GetAmplitudeY();
+            Double_t amplitudeX = std::abs(siHit->GetAmplitudeX());
+            Double_t amplitudeY = std::abs(siHit->GetAmplitudeY());
             Double_t clusterSizeX = siHit->GetClusterSizeX();
             Double_t clusterSizeY = siHit->GetClusterSizeY();
 
@@ -127,6 +138,10 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
             hAmplitudesMap.find(key)->second->Fill(amplitudeX, amplitudeY);
             hClustersSizeX->Fill(clusterSizeX);
             hClustersSizeY->Fill(clusterSizeY);
+
+            TVector3 globalHitPos = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);
+
+            hStationOccups[station]->Fill(globalHitPos.X(), globalHitPos.Y());
 
             if (clusterSizeX == 1)
             {
@@ -153,7 +168,7 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
     } // end of event
 
     // --- OUTPUT ------------------------------------------------------------------------
-    TFile *outputFile = new TFile(Form("root_files/h1_run%d_si_occup.root", runId), "recreate");
+    TFile *outputFile = new TFile(Form("root_files/run%04d_si_occup.root", runId), "recreate");
 
     for (auto &&pair : hOccupMap)
     {
@@ -173,7 +188,7 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
         hist->Draw("COLZ");
         if (saveImages)
         {
-            canvas->SaveAs(Form("pictures/h1_run%d_si_occup_mod%02d.png", runId, key));
+            canvas->SaveAs(Form("pictures/run%04d_si_occup_mod%02d.png", runId, key));
         }
         
         delete canvas;
@@ -190,10 +205,24 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
         hist->Draw("COLZ");
         if (saveImages)
         {
-            canvas->SaveAs(Form("pictures/h1_run%d_si_ampl_mod%02d.png", runId, key));
+            canvas->SaveAs(Form("pictures/run%04d_si_ampl_mod%02d.png", runId, key));
         }
         delete canvas;
     }
+
+    Int_t iStation = 0;
+    for (auto &&hist : hStationOccups)
+    {
+        TCanvas *canvas = new TCanvas(Form("canvas%d", iStation), "", 630, 630);
+        hist->Draw("COL");
+        hist->Write();
+        if (saveImages)
+        {
+            canvas->SaveAs(Form("pictures/run%04d_si_station%d_occup.png", runId, iStation++));
+        }
+        delete canvas;
+    }
+    
 
     TCanvas *canvas = new TCanvas("canvas", "", 630, 630);
     hClustersSizeX->Write();
@@ -205,7 +234,7 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
     hClustersSizeY->Draw("SAME HIST");
     if (saveImages)
     {
-        canvas->SaveAs(Form("pictures/h1_run%d_si_clusters.png", runId));
+        canvas->SaveAs(Form("pictures/run%04d_si_clusters.png", runId));
     }
 
     canvas->SetLogy(kFALSE);
@@ -223,7 +252,7 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
 
     if (saveImages)
     {
-        canvas->SaveAs(Form("pictures/h1_run%d_si_amplitude.png", runId));
+        canvas->SaveAs(Form("pictures/run%04d_si_amplitude.png", runId));
     }
 
 

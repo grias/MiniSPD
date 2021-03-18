@@ -12,9 +12,9 @@ const Int_t nSides = 2;
 const Int_t nChannels = 640;
 
 map<Int_t, TH1I *> hOccupMap;
-TH1D* h1Signal;
+TH1D* h1Signal[3];
 
-void SiliconDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
+void SiliconDigitsAnalysisHist(UInt_t runId = 0)
 {
     // --- HIST CREATION -----------------------------------------------------------------
     for (size_t iHist = 0; iHist < 16; iHist++)
@@ -28,7 +28,9 @@ void SiliconDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
         hOccupMap.insert({key, hist});
     }
 
-    h1Signal = new TH1D("h1_signal", "Silicon signal;AE [???];", 100, 0, 1000);
+    h1Signal[0] = new TH1D("h1_signal_st0", "Silicon signal amplitude (station 0);AU;", 80, 0, 800);
+    h1Signal[1] = new TH1D("h1_signal_st1", "Silicon signal amplitude (station 1);AU;", 80, 0, 800);
+    h1Signal[2] = new TH1D("h1_signal_st2", "Silicon signal amplitude (station 2);AU;", 80, 0, 800);
 
 
     // --- OPEN FILE -----------------------------------------------------------------
@@ -43,7 +45,7 @@ void SiliconDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
         inChain = new TChain("cbmsim");
         for (auto &&iRunId : runs)
         {
-            inChain->Add(Form("bmn_run%04d_digi.root", iRunId));
+            inChain->Add(Form("data/stand_run%04d_digits.root", iRunId));
         }
 
         SiliconDigits = 0;
@@ -54,7 +56,7 @@ void SiliconDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
     }
     else
     {
-        TString inFileName = Form("bmn_run%04d_digi.root", runId);
+        TString inFileName = Form("data/stand_run%04d_digits.root", runId);
         TFile *inFile = new TFile(inFileName);
         if (!inFile) return;
         tree = (TTree *)inFile->Get("cbmsim");
@@ -99,37 +101,33 @@ void SiliconDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
             Int_t key = 100 * station + 10 * module + layer;
 
             hOccupMap.find(key)->second->Fill(strip);
-            h1Signal->Fill(signal);
+            h1Signal[station]->Fill(abs(signal));
+            // h1Signal[station]->Fill(signal);
 
             if (kVERBOSE_MODE)
             printf("<SiDigit> Station: %d, Module: %d, Layer: %d, Strip: %d, Signal: %f\n", station, module, layer, strip, signal);
         }
 
     } // end of event
+    printf("File ended\n");
 
     // --- DRAW ------------------------------------------------------------------------
-    if (drawHistKey == -1)
-    {
-        for (auto const &[key, hist] : hOccupMap)
-        {
-            TCanvas *canvas = new TCanvas(Form("canvas%d", key), "", 1200, 600);
-            canvas->SetLogy();
-            hist->Draw();
-            canvas->SaveAs(Form("pictures/h1_run%d_occup_mod%03d.png", runId, key));
-            canvas->SaveAs(Form("pictures_C/h1_run%d_occup_mod%03d.C", runId, key));
-        }
+    // for (auto const &[key, hist] : hOccupMap)
+    // {
+    //     TCanvas *canvas = new TCanvas(Form("canvas%d", key), "", 1200, 600);
+    //     canvas->SetLogy();
+    //     hist->Draw();
+    //     canvas->SaveAs(Form("pictures/run%04d_occup_mod%03d.png", runId, key));
+    //     canvas->SaveAs(Form("pictures_C/run%04d_occup_mod%03d.C", runId, key));
+    // }
 
-        auto cSignal = new TCanvas("cSignal", "Silicon signal", 1200, 600);
-        h1Signal->Draw();
-        cSignal->SaveAs(Form("pictures/h1_run%d_signal.png", runId));
-
-    } 
-    else if (drawHistKey > 0)
-    {
-        cout<<"Drawing module "<<drawHistKey<<endl;
-        TCanvas *canvas = new TCanvas(Form("canvas%d", drawHistKey), "", 1200, 600);
-        canvas->SetLogy();
-        hOccupMap.find(drawHistKey)->second->Draw();
-    }
-    
+    // for (size_t i = 0; i < 3; i++)
+    // {
+    //     auto cSignal = new TCanvas("cSignal", "Silicon signal", 800, 600);
+    //     // cSignal->SetLogy(kTRUE);
+    //     h1Signal[i]->Draw();
+    //     cSignal->SaveAs(Form("pictures/run%04d_signal_st%d.png", runId, i));
+    // }
+    auto cSignal = new TCanvas("cSignal", "Silicon signal", 800, 600);
+    h1Signal[0]->Draw();
 }

@@ -9,7 +9,10 @@ const Double_t radToDeg = 180. / 3.14159265359;
 const Int_t stationMap[8] = {0, 0, 1, 1, 1, 1, 2, 2};
 const Int_t modMap[8] = {0, 1, 0, 1, 2, 3, 0, 1};
 
-map<Int_t, TH2D *> hResidMap;
+TH2D *hResidAll;
+array<TH2D *, 3> hResidStation;
+map<Int_t, TH2D *> hResidMapRxRy;
+map<Int_t, TH2D *> hResidMapRxY;
 TH1D *hChiSquare;
 TH1D *hTrackAngleX;
 TH1D *hTrackAngleY;
@@ -23,16 +26,36 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
     TString histName;
     TString histDiscription;
     TH2D *hist;
+
+    histName = Form("h2_residuals_rxry");
+    histDiscription = Form("Res X vs res Y; res X [mm]; res Y [mm]");
+    hResidAll = new TH2D(histName, histDiscription, 100, -5, 5, 100, -5, 5);
+    
     for (size_t iHist = 0; iHist < 8; iHist++)
     {
         Int_t key = 10 * stationMap[iHist] + 1 * modMap[iHist];
 
-        // residuals
-        histName = Form("h2_station%d_mod%d_residuals", stationMap[iHist], modMap[iHist]);
+        // resX vs resY
+        histName = Form("h2_station%d_mod%d_residuals_rxry", stationMap[iHist], modMap[iHist]);
         histDiscription = Form("Residuals (station %d, module %d);X [mm];Y [mm]", stationMap[iHist], modMap[iHist]);
         hist = new TH2D(histName, histDiscription, 100, -2, 2, 100, -2, 2);
-        hResidMap.insert({key, hist});
+        hResidMapRxRy.insert({key, hist});
+
+        // resX vs Y
+        histName = Form("h2_station%d_mod%d_residuals_rxy", stationMap[iHist], modMap[iHist]);
+        histDiscription = Form("ResX vs Y (station %d, module %d); res X [mm];Y [mm]", stationMap[iHist], modMap[iHist]);
+        hist = new TH2D(histName, histDiscription, 100, -5, 5, 240, -240, 0);
+        hResidMapRxY.insert({key, hist});
     }
+
+    for (size_t iStation = 0; iStation < 3; iStation++)
+    {
+        histName = Form("h2_station%d_residuals_rxry", iStation);
+        histDiscription = Form("Res X vs res Y (station %d); res X [mm]; res Y [mm]", iStation);
+        hResidStation[iStation] = new TH2D(histName, histDiscription, 100, -5, 5, 100, -5, 5);
+    }
+    
+    
 
     hChiSquare = new TH1D("h1_chisquare", "Chi square distribution;Chi square", 500, 0, 500);
 
@@ -56,7 +79,7 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
         inChain = new TChain("cbmsim");
         for (auto &&iRunId : runs)
         {
-            TString inFileName = Form("stand_run%04d_tracks.root", iRunId);
+            TString inFileName = Form("data/stand_run%04d_tracks.root", iRunId);
             inChain->Add(inFileName);
         }
 
@@ -68,7 +91,7 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
     }
     else
     {
-        TString inFileName = Form("stand_run%04d_tracks.root", runId);
+        TString inFileName = Form("data/stand_run%04d_tracks.root", runId);
         TFile *inFile = new TFile(inFileName);
         if (!inFile)
             return;
@@ -118,6 +141,10 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
             // hChiSquare->Fill(chiX);
             // hChiSquare->Fill(chiY);
 
+            Double_t hitPosX[3] = {siTrack->GetHitPositionX(0), siTrack->GetHitPositionX(1), siTrack->GetHitPositionX(2)};
+            Double_t hitPosY[3] = {siTrack->GetHitPositionY(0), siTrack->GetHitPositionY(1), siTrack->GetHitPositionY(2)};
+            Double_t hitPosZ[3] = {siTrack->GetHitPositionZ(0), siTrack->GetHitPositionZ(1), siTrack->GetHitPositionZ(2)};
+
             for (size_t iStation = 0; iStation < 3; iStation++)
             {
                 Int_t module = siTrack->GetModule(iStation);
@@ -125,12 +152,14 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
                 Double_t residY = siTrack->GetResidualY(iStation);
 
                 Int_t key = 10 * iStation + 1 * module;
-                hResidMap.find(key)->second->Fill(residX, residY);
-            }
 
-            Double_t hitPosX[3] = {siTrack->GetHitPositionX(0), siTrack->GetHitPositionX(1), siTrack->GetHitPositionX(2)};
-            Double_t hitPosY[3] = {siTrack->GetHitPositionY(0), siTrack->GetHitPositionY(1), siTrack->GetHitPositionY(2)};
-            Double_t hitPosZ[3] = {siTrack->GetHitPositionZ(0), siTrack->GetHitPositionZ(1), siTrack->GetHitPositionZ(2)};
+                hResidAll->Fill(residX, residY);
+                hResidStation[iStation]->Fill(residX, residY);
+                hResidMapRxRy.find(key)->second->Fill(residX, residY);
+                hResidMapRxY.find(key)->second->Fill(residX, hitPosY[iStation]);
+
+                
+            }
 
             TGraph *graphZX = new TGraph(3, hitPosZ, hitPosX);
             TGraph *graphZY = new TGraph(3, hitPosZ, hitPosY);
@@ -149,19 +178,54 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
     } // end of event
 
     // --- OUTPUT ------------------------------------------------------------------------
-    TFile *outputFile = new TFile(Form("root_files/h1_run%d_si_tracks.root", runId), "recreate");
+    TFile *outputFile = new TFile(Form("root_files/run%04d_si_tracks.root", runId), "recreate");
+    auto cResidAll = new TCanvas("hResidAll", "", 1000, 1000);
+    hResidAll->Draw("COLZ");
+    if (saveImages)
+    {
+        cResidAll->SaveAs(Form("pictures/run%04d_si_track_residRxRy_all.png", runId));
+    }
+    
 
-    for (auto &&pair : hResidMap)
+    for (size_t iStation = 0; iStation < 3; iStation++)
+    {
+        TCanvas *canvas = new TCanvas(Form("canvas_st%zu", iStation), "", 1000, 1000);
+        hResidStation[iStation]->Write();
+        hResidStation[iStation]->Draw("COLZ");
+        if (saveImages)
+        {
+            canvas->SaveAs(Form("pictures/run%04d_si_track_residRxRy_st%zu.png", runId, iStation));
+        }
+        delete canvas;
+    }
+    
+
+    for (auto &&pair : hResidMapRxRy)
     {
         auto key = pair.first;
         auto hist = pair.second;
 
-        TCanvas *canvas = canvas = new TCanvas(Form("canvas%d", key), "", 1000, 1000);
+        TCanvas *canvas = new TCanvas(Form("canvas%d", key), "", 1000, 1000);
         hist->Write();
         hist->Draw("COLZ");
         if (saveImages)
         {
-            canvas->SaveAs(Form("pictures/h2_run%d_si_track_resid_mod%02d.png", runId, key));
+            canvas->SaveAs(Form("pictures/run%04d_si_track_residRxRy_mod%02d.png", runId, key));
+        }
+        delete canvas;
+    }
+
+    for (auto &&pair : hResidMapRxY)
+    {
+        auto key = pair.first;
+        auto hist = pair.second;
+
+        TCanvas *canvas = new TCanvas(Form("canvas%d", key), "", 1000, 1000);
+        hist->Write();
+        hist->Draw("COLZ");
+        if (saveImages)
+        {
+            canvas->SaveAs(Form("pictures/run%04d_si_track_residRxY_mod%02d.png", runId, key));
         }
         delete canvas;
     }
@@ -172,35 +236,35 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
     hChiSquare->Draw("HIST");
     hChiSquare->Write();
     if (saveImages)
-    canvas->SaveAs(Form("pictures/h2_run%d_si_track_chi.png", runId));
+    canvas->SaveAs(Form("pictures/run%04d_si_track_chi.png", runId));
     canvas->SetLogy(kFALSE);
     canvas->Clear();
 
     HitsZX->Draw("a");
     if (saveImages)
-    canvas->SaveAs(Form("pictures/gr_run%d_si_tracks_ZX.png", runId));
+    canvas->SaveAs(Form("pictures/run%04d_si_tracks_ZX.png", runId));
     canvas->Clear();
 
     HitsZY->Draw("a");
     if (saveImages)
-    canvas->SaveAs(Form("pictures/gr_run%d_si_tracks_ZY.png", runId));
+    canvas->SaveAs(Form("pictures/run%04d_si_tracks_ZY.png", runId));
     canvas->Clear();
 
     HitsXY->Draw("a");
     if (saveImages)
-    canvas->SaveAs(Form("pictures/gr_run%d_si_tracks_XY.png", runId));
+    canvas->SaveAs(Form("pictures/run%04d_si_tracks_XY.png", runId));
     canvas->Clear();
 
     hTrackAngleX->Draw("HIST");
     hTrackAngleX->Write();
     if (saveImages)
-    canvas->SaveAs(Form("pictures/h1_run%d_si_tracks_angleX.png", runId));
+    canvas->SaveAs(Form("pictures/run%04d_si_tracks_angleX.png", runId));
     canvas->Clear();
 
     hTrackAngleY->Draw("HIST");
     hTrackAngleY->Write();
     if (saveImages)
-    canvas->SaveAs(Form("pictures/h1_run%d_si_tracks_angleY.png", runId));
+    canvas->SaveAs(Form("pictures/run%04d_si_tracks_angleY.png", runId));
     canvas->Clear();
 
     outputFile->Write();

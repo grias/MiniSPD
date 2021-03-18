@@ -45,15 +45,6 @@ private:
     TString fMapFileName;
 
     TH1F**** fSigProf;
-    TH1D* fSig;
-    TH1D* fSigMp;
-    TH1D* fSigMpMc;
-    TH1D* fPed;
-    TH1D* fSigma;
-    TH1D* fSigmaX3;
-    TH1D* fClearLine;
-    TH1D* fClearLineX3;
-    TH1D* fClearLineX6;
     Bool_t**** fNoisyChannels;
 
     BmnStatus ReadMapFile();

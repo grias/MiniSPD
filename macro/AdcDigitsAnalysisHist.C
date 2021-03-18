@@ -21,7 +21,7 @@ void AdcDigitsAnalysisHist(UInt_t runId = 0, Int_t drawEvent = -1, Int_t drawHis
     TH1D *histI = new TH1D(histNameI, histDiscriptionI, 128, 0 - 0.5, 128 - 0.5);
     histI->GetYaxis()->SetTitle("I [???]");
 
-    TString inFileName = Form("bmn_run%04d_raw.root", runId);
+    TString inFileName = Form("data/stand_run%04d_raw.root", runId);
     TFile *inFile = new TFile(inFileName);
     if (!inFile)
         return;
@@ -88,10 +88,10 @@ void AdcDigitsAnalysisHist(UInt_t runId = 0, Int_t drawEvent = -1, Int_t drawHis
         cout << "Drawing channel " << drawHistKey << endl;
     TCanvas *canvasU = new TCanvas(Form("canvasU%d", drawHistKey), "", 1200, 600);
     histU->Draw("HIST");
-    canvasU->SaveAs(Form("pictures/h1_run%d_adc128_ser%d_ch%d_ev%d_u.png", runId, serialKey, drawHistKey, drawEvent));
+    canvasU->SaveAs(Form("pictures/run%04d_adc128_ser%d_ch%d_ev%d_u.png", runId, serialKey, drawHistKey, drawEvent));
     TCanvas *canvasI = new TCanvas(Form("canvasI%d", drawHistKey), "", 1200, 600);
     histI->Draw("HIST");
-    canvasI->SaveAs(Form("pictures/h1_run%d_adc128_ser%d_ch%d_ev%d_i.png", runId, serialKey, drawHistKey, drawEvent));
+    canvasI->SaveAs(Form("pictures/run%04d_adc128_ser%d_ch%d_ev%d_i.png", runId, serialKey, drawHistKey, drawEvent));
     }
 
     

@@ -37,11 +37,18 @@ TVector3 StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(Int_t station, 
     Double_t fSiModuleWidthX = 63.; /* mm */
     Double_t fSiModuleWidthY[3] = {126., 63., 126.}; /* mm */
 
+    Double_t fModuleRotationCorrection[3][4][3] = 
+    {
+        {{0, 0, 0},{0, 0, 0},{0, 0, 0},{0, 0, 0}},
+        {{0, 0, 0},{0, 0, 0},{0, 0, -0.3},{0, 0, 0}},
+        {{0, 0, 0},{0, 0, 0},{0, 0, 0},{0, 0, 0}}
+    }; /* deg */ /* "*"" may be wrong! */
+
     Double_t fModuleCSToStationCS[3][4][3] = 
     {
         {{60., -126., -15.3},{0., -126., 0},{0, 0, 0},{0, 0, 0}},
-        {{60., -68.1, 7.3},{0., -63., 0},{55. /* * */, -137., 0},{-5., -129., 7.3}},
-        // {{60., -68.1, 7.3},{0., -63., 0},{55. /* * */, -128., 0},{-5., -123., 7.3}},
+        // {{60., -68.1, 7.3},{0., -63., 0},{55. /* * */, -137., 0},{-5., -129., 7.3}},
+        {{59.65, -68.1, 7.3},{0., -63., 0},{55. /* * */, -128., 0},{-6., -123., 7.3}},
         {{60., -131.14, 7.3},{0, -126., 0},{0, 0, 0},{0, 0, 0}}
     }; /* mm */ /* "*"" may be wrong! */
 
@@ -80,13 +87,21 @@ TVector3 StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(Int_t station, 
         localY = fSiModuleWidthY[station] - localY;
     }
 
-    TVector3 hit(localX + fModuleCSToStationCS[station][module][0],
-                 localY + fModuleCSToStationCS[station][module][1],
+    TVector3 localModuleHit(localX, localY, 0);
+
+    localX -= fSiModuleWidthX;
+    localY -= fSiModuleWidthY[station];
+    localModuleHit.RotateX(fModuleRotationCorrection[station][module][0]*degToRad);
+    localModuleHit.RotateY(fModuleRotationCorrection[station][module][1]*degToRad);
+    localModuleHit.RotateZ(fModuleRotationCorrection[station][module][2]*degToRad);
+    localX += fSiModuleWidthX;
+    localY += fSiModuleWidthY[station];
+
+    TVector3 hit(localModuleHit.X() + fModuleCSToStationCS[station][module][0],
+                 localModuleHit.Y() + fModuleCSToStationCS[station][module][1],
                           fModuleCSToStationCS[station][module][2]);
 
-    hit.RotateZ(fStationsRotation[station]); /* what direction? */
-
-
+    hit.RotateZ(fStationsRotation[station]);
 
     // Station rotation correction
     hit.RotateX(fStationRotationCorrection[station][0]*degToRad);
@@ -102,9 +117,19 @@ TVector3 StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(Int_t station, 
     return hit;
 }
 
-Double_t StandSiliconGeoMapper::CalculateLocalY(Double_t localX, Double_t stripOffsetY)
+Double_t StandSiliconGeoMapper::CalculateLocalY(Double_t localX, Double_t stripOffsetY, Int_t station)
 {
-    return ((stripOffsetY - localX)/fTangentOfStripsYSlope);
+    Double_t clearance = 2.303; // clearance between two sensors in big modules
+    Double_t localY = ((stripOffsetY - localX)/fTangentOfStripsYSlope);
+    if (localY > 61.853)
+    {
+        if (station == 0 || station == 2)
+        {
+            localY += clearance;
+        }
+    }
+    
+    return localY;
 }
 
 Bool_t StandSiliconGeoMapper::IsInSensitiveRange(Int_t station, Double_t localY)

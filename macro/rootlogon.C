@@ -81,6 +81,7 @@ void LoadLibraries()
 
   gSystem->Load("libDecoder");
   gSystem->Load("libBmnData");
+  gSystem->Load("libStandCommon");
   gSystem->Load("libStandHitsProducer");
 
   //gSystem->ListLibraries();
@@ -144,7 +145,7 @@ void SetStyle()
   gStyle->SetCanvasDefH(600);
   gStyle->SetCanvasDefW(800);
 
-  gStyle->SetOptStat(10);
+  // gStyle->SetOptStat(10);
 
   gROOT->ForceStyle();
 }

@@ -73,6 +73,7 @@ void StandTracksProducer::ProduceTracksFromEvents(Int_t startEvent, Int_t endEve
 
     for (size_t iEvent = startEvent; iEvent <= endEvent; iEvent++)
     {
+        // cout<<"Event "<<iEvent<<endl;
         ProduceTracksFromEvent(iEvent);
     }
 
@@ -91,6 +92,7 @@ void StandTracksProducer::ProduceTracksFromEvent(Int_t event)
     FindTrackCandidates(trackCandidates);
 
     FitTracks(trackCandidates);
+    
     if (trackCandidates.size())
     {
         FindBestTrack(trackCandidates);
@@ -104,6 +106,8 @@ void StandTracksProducer::FindTrackCandidates(vector<TrackCandidate> &trackCandi
     vector<HitWrapper> stationsHits[3] = {vector<HitWrapper>(), vector<HitWrapper>(), vector<HitWrapper>()};
 
     Int_t nHits = fSiliconHitsArray->GetEntriesFast();
+    if (nHits>50) return;
+    
     // cout << "-I-<StandTracksProducer::FindTrackCandidates> Total silicon hits: " << nHits << endl;
 
     for (size_t iHit = 0; iHit < nHits; iHit++)
@@ -212,8 +216,11 @@ void StandTracksProducer::FindBestTrack(vector<TrackCandidate> &trackCandidates)
     for (size_t iCandidate = 0; iCandidate < nCandidates; iCandidate++)
     {
         TrackCandidate candidate = trackCandidates[iCandidate];
-        Double_t candidateChiSquare = 
-            std::sqrt(candidate.chiSquare[0]*candidate.chiSquare[0] + candidate.chiSquare[1]*candidate.chiSquare[1]);
+        // Double_t candidateChiSquare = 
+        //     std::sqrt(candidate.chiSquare[0]*candidate.chiSquare[0] + candidate.chiSquare[1]*candidate.chiSquare[1]);
+
+        Double_t candidateChiSquare = candidate.chiSquare[0]; // for now only X counts
+
         if (candidateChiSquare <= bestChiSquare)
         {
             nBest = iCandidate;
@@ -221,8 +228,7 @@ void StandTracksProducer::FindBestTrack(vector<TrackCandidate> &trackCandidates)
     }
     TrackCandidate bestCandidate = trackCandidates[nBest];
 
-    StandSiliconTrack* track = 
-        new((*fSiliconTracksArray)[fSiliconTracksArray->GetEntriesFast()]) StandSiliconTrack();
+    StandSiliconTrack* track = new((*fSiliconTracksArray)[fSiliconTracksArray->GetEntriesFast()]) StandSiliconTrack();
 
     Double_t hitPosX[3] = {bestCandidate.hits[0].globalPosition.X(),bestCandidate.hits[1].globalPosition.X(),bestCandidate.hits[2].globalPosition.X()};
     Double_t hitPosY[3] = {bestCandidate.hits[0].globalPosition.Y(),bestCandidate.hits[1].globalPosition.Y(),bestCandidate.hits[2].globalPosition.Y()};

@@ -9,7 +9,7 @@ class StandSiliconGeoMapper : public TObject
 
 public:
     static Double_t CalculateLocalCoordinateForStrip(Int_t station, Int_t module, Int_t side, Int_t strip);
-    static Double_t CalculateLocalY(Double_t localX, Double_t stripOffsetY);
+    static Double_t CalculateLocalY(Double_t localX, Double_t stripOffsetY, Int_t station);
     static Bool_t IsInSensitiveRange(Int_t station, Double_t localY);
 
     static TVector3 CalculateGlobalCoordinatesForHit(Int_t station, Int_t module, Int_t localX, Int_t localY);

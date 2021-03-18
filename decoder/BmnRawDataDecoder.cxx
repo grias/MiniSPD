@@ -98,8 +98,8 @@ BmnRawDataDecoder::BmnRawDataDecoder(TString file, ULong_t nEvents, ULong_t peri
     fMaxEvent = nEvents;
     fPeriodId = period;
     fRunId = GetRunIdFromFile(fRawFileName);
-    fRootFileName = Form("stand_run%04d_raw.root", fRunId);
-    fDigiFileName = Form("stand_run%04d_digits.root", fRunId);
+    fRootFileName = Form("data/stand_run%04d_raw.root", fRunId);
+    fDigiFileName = Form("data/stand_run%04d_digits.root", fRunId);
     fDchMapFileName = "";
     fTrigMapFileName = "";
     fTrigINLFileName = "";

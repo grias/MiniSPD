@@ -1,7 +1,7 @@
 void standHitsToTracks(Int_t run, Int_t iEvent = -1)
 {
-    TString inputFileName = Form("stand_run%04d_hits.root", run);
-    TString outputFileName = Form("stand_run%04d_tracks.root", run);
+    TString inputFileName = Form("data/stand_run%04d_hits.root", run);
+    TString outputFileName = Form("data/stand_run%04d_tracks.root", run);
 
     StandTracksProducer* tracksProducer = new StandTracksProducer();
 
