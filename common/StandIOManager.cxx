@@ -65,6 +65,8 @@ void StandIOManager::FinishInput()
 
 void StandIOManager::FinishOutput()
 {
+    WriteTreeIntoOutputFile();
+
     fOutputFileName = "";
     fOutputBranchesNames.clear();
     for (auto &&branchPair : fOutputDataMap)

@@ -64,6 +64,5 @@ void standMergeDigits()
         ioman->FillEvent();
     } // end of event
 
-    ioman->WriteTreeIntoOutputFile();
     ioman->FinishOutput();
 }

@@ -33,8 +33,6 @@ public:
     void StartEvent(Int_t nEvent);
     void EndEvent();
     
-    void WriteTreeIntoOutputFile() { fOutputTree->Write(); }
-    
     TClonesArray* GetInputDataArray(TString className);
     TClonesArray* GetOutputDataArray(TString className);
     
@@ -46,6 +44,7 @@ private:
     void ReadInputEvent(Int_t nEvent) { fInputTree->GetEntry(nEvent); }
     void FillEvent() { fOutputTree->Fill(); }
     void ClearArrays();
+    void WriteTreeIntoOutputFile() { fOutputTree->Write(); }
 
     void OpenInputFile();
     void CreateOutputFile();

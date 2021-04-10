@@ -21,32 +21,27 @@ StandTracksProducer::~StandTracksProducer()
 {
 }
 
-void StandTracksProducer::Init()
-{
-    cout << "-I-<StandTracksProducer::Init>" << endl;
-
-    OpenInputOutputFiles();
-}
-
-void StandTracksProducer::Finish()
-{
-    cout << "-I-<StandTracksProducer::Finish>" << endl;
-
-    CloseInputOutputFiles();
-}
-
 void StandTracksProducer::ProduceTracksFromAllEvents()
 {
     cout << "-I-<StandTracksProducer::ProduceTracksFromAllEvents>" << endl;
 
+    OpenInputOutputFiles();
+
     Long64_t nEvents = fIOManager->GetNumberOfInputEvents();
     ProduceTracksFromEvents(0, nEvents - 1);
+
+    CloseInputOutputFiles();
 }
 
 void StandTracksProducer::ProduceTracksFromOneEvent(Int_t event)
 {
     cout << "-I-<StandTracksProducer::ProduceTracksFromOneEvent>" << endl;
+
+    OpenInputOutputFiles();
+
     ProduceTracksFromEvents(event, event);
+
+    CloseInputOutputFiles();
 }
 
 void StandTracksProducer::ProduceTracksFromEvents(Int_t startEvent, Int_t endEvent)
@@ -78,8 +73,6 @@ void StandTracksProducer::ProduceTracksFromEvents(Int_t startEvent, Int_t endEve
 
         fIOManager->EndEvent();
     }
-
-    fIOManager->WriteTreeIntoOutputFile();
 }
 
 void StandTracksProducer::ProduceTracksFromCurrentEvent()

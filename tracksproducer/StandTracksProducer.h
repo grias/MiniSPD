@@ -48,9 +48,6 @@ public:
     void SetInputFileName(TString inputFileName) { fInputFileName = inputFileName; }
     void SetOutputFileName(TString outputFileName) { fOutputFileName = outputFileName; }
 
-    void Init();
-    void Finish();
-
     void ProduceTracksFromAllEvents();
     void ProduceTracksFromOneEvent(Int_t iEvent);
 

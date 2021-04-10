@@ -23,33 +23,27 @@ StandHitsProducer::~StandHitsProducer()
 {
 }
 
-void StandHitsProducer::Init()
-{
-    cout << "-I-<StandHitsProducer::Init>" << endl;
-
-    OpenInputOutputFiles();
-}
-
-void StandHitsProducer::Finish()
-{
-    cout << "-I-<StandHitsProducer::Finish>" << endl;
-
-    CloseInputOutputFiles();
-}
-
 void StandHitsProducer::ProduceHitsFromAllEvents()
 {
     cout << "-I-<StandHitsProducer::ProduceHitsFromAllEvents>" << endl;
 
+    OpenInputOutputFiles();
+
     Long64_t nEvents = fIOManager->GetNumberOfInputEvents();
     ProduceHitsFromEvents(0, nEvents - 1);
+
+    CloseInputOutputFiles();
 }
 
 void StandHitsProducer::ProduceHitsFromOneEvent(Int_t event)
 {
     cout << "-I-<StandHitsProducer::ProduceHitsFromOneEvent>" << endl;
 
+    OpenInputOutputFiles();
+
     ProduceHitsFromEvents(event, event);
+
+    CloseInputOutputFiles();
 }
 
 void StandHitsProducer::ProduceHitsFromEvents(Int_t startEvent, Int_t endEvent)
@@ -81,8 +75,6 @@ void StandHitsProducer::ProduceHitsFromEvents(Int_t startEvent, Int_t endEvent)
 
         fIOManager->EndEvent();
     }
-
-    fIOManager->WriteTreeIntoOutputFile();
 }
 
 void StandHitsProducer::ProduceHitsFromCurrentEvent()
@@ -234,7 +226,6 @@ void StandHitsProducer::OpenInputOutputFiles()
 
     GetInputData();
     GetOutputData();
-
 }
 
 void StandHitsProducer::ConfigureInput()

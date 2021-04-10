@@ -21,9 +21,6 @@ public:
     void SetInputFileName(TString inputFileName) { fInputFileName = inputFileName; }
     void SetOutputFileName(TString outputFileName) { fOutputFileName = outputFileName; }
 
-    void Init();
-    void Finish();
-
     void ProduceHitsFromAllEvents();
     void ProduceHitsFromOneEvent(Int_t iEvent);
 

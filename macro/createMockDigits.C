@@ -82,7 +82,6 @@ void createMockDigits()
         fIOManager->EndEvent();
     }
     
-    fIOManager->WriteTreeIntoOutputFile();
     fIOManager->FinishOutput();    
 }
 
