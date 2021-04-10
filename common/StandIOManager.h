@@ -10,13 +10,6 @@
 #include <map>
 #include <set>
 
-
-/*
-------- TIPS:
-FILLING:
-new((*arr)[arr->GetEntriesFast()]) BmnDchDigit(map.plane, ch, tm, 0);
-*/
-
 class StandIOManager
 {
 public:
@@ -37,24 +30,28 @@ public:
     void FinishInput();
     void FinishOutput();
 
-    void FillEvent();
+    void StartEvent(Int_t nEvent);
+    void EndEvent();
+    
     void WriteTreeIntoOutputFile() { fOutputTree->Write(); }
     
     TClonesArray* GetInputDataArray(TString className);
     TClonesArray* GetOutputDataArray(TString className);
-    void ReadInputEvent(Int_t nEvent) { fInputTree->GetEntry(nEvent); }
-    void ClearArrays();
+    
     Long64_t GetNumberOfInputEvents() { return fInputTree->GetEntries(); }
 
     void SetVerboseLevel(Int_t verbose) { fVerbose = verbose; }
 
 private:
+    void ReadInputEvent(Int_t nEvent) { fInputTree->GetEntry(nEvent); }
+    void FillEvent() { fOutputTree->Fill(); }
+    void ClearArrays();
+
     void OpenInputFile();
     void CreateOutputFile();
 
     void OpenInputBranches();
     void CreateOutputBranches();
-
 
     Bool_t fIsInputInitialized = kFALSE;
     Bool_t fIsOutputInitialized = kFALSE;
@@ -75,6 +72,7 @@ private:
     std::map<TString, TClonesArray*> fOutputDataMap;
 
     Int_t fVerbose = 0;
-    
+
+    ClassDef(StandIOManager, 1)
 };
 #endif // IOMANAGER_H

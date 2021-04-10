@@ -79,7 +79,7 @@ void createMockDigits()
         FillNewSiliconDigit(2, 1, 0, stripsX2Arr[1], amplitudeX22);
         FillNewSiliconDigit(2, 1, 1, stripY2, defaultAmplitude);
 
-        fIOManager->FillEvent();
+        fIOManager->EndEvent();
     }
     
     fIOManager->WriteTreeIntoOutputFile();

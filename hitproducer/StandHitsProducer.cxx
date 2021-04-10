@@ -1,6 +1,5 @@
 #include "StandHitsProducer.h"
 
-#include "BmnEventHeader.h"
 #include "BmnDchDigit.h"
 #include "StandSiliconHit.h"
 #include "StandSiliconGeoMapper.h"
@@ -14,10 +13,6 @@ using std::cout;
 using std::endl;
 using std::map;
 using std::vector;
-
-/*
-TODO: Move IO logic to a separate class
-*/
 
 StandHitsProducer::StandHitsProducer()
 {
@@ -80,27 +75,23 @@ void StandHitsProducer::ProduceHitsFromEvents(Int_t startEvent, Int_t endEvent)
 
     for (size_t iEvent = startEvent; iEvent <= endEvent; iEvent++)
     {
-        ProduceHitsFromEvent(iEvent);
+        fIOManager->StartEvent(iEvent);
+
+        ProduceHitsFromCurrentEvent();
+
+        fIOManager->EndEvent();
     }
 
     fIOManager->WriteTreeIntoOutputFile();
 }
 
-void StandHitsProducer::ProduceHitsFromEvent(Int_t event)
+void StandHitsProducer::ProduceHitsFromCurrentEvent()
 {
-    // cout << "-I-<StandHitsProducer::ProduceHitsFromEvent> Processing event " << event << endl;
-
-    fIOManager->ClearArrays();
-    fIOManager->ReadInputEvent(event);
-
+    // cout << "-I-<StandHitsProducer::ProduceHitsFromCurrentEvent> Processing event " << iEvent << endl;
     StandClustersContainer clustersContainer;
     ProcessSiliconDigitsIntoClusters(clustersContainer);
-
     CalculateLocalCoordinates(clustersContainer);
-
     ProcessSiliconClustersIntoHits(clustersContainer);
-
-    fIOManager->FillEvent();
 }
 
 void StandHitsProducer::ProcessSiliconDigitsIntoClusters(StandClustersContainer &clustersContainer)
@@ -114,14 +105,22 @@ void StandHitsProducer::ProcessSiliconDigitsIntoClusters(StandClustersContainer 
         if (!siliconDigit->IsGoodDigit())
             continue;
 
-        StandSiliconCluster* cluster = ProcessSiliconDigitIntoCluster(siliconDigit);
+        Int_t isActiveModule[3][4] = 
+        {
+            {1, 1, 0, 0},
+            {1, 1, 1, 1},
+            {1, 1, 0, 0}
+        };
+        if (!isActiveModule[siliconDigit->GetStation()][siliconDigit->GetModule()]) continue;
+
+        StandSiliconCluster* cluster = CreateSiliconCluster(siliconDigit);
 
         clustersContainer.AddCluster(cluster);
     }
     // clustersContainer.Print();
 }
 
-StandSiliconCluster* StandHitsProducer::ProcessSiliconDigitIntoCluster(BmnSiliconDigit *siliconDigit)
+StandSiliconCluster* StandHitsProducer::CreateSiliconCluster(BmnSiliconDigit *siliconDigit)
 {
     Int_t station = siliconDigit->GetStation();
     Int_t module = siliconDigit->GetModule();
@@ -131,7 +130,7 @@ StandSiliconCluster* StandHitsProducer::ProcessSiliconDigitIntoCluster(BmnSilico
 
     StandSiliconCluster* cluster = new StandSiliconCluster(station, module, side, strip, signal);
 
-    // printf("-I-<StandHitsProducer::ProcessSiliconDigitIntoCluster> Station: %d, module: %d, side: %d, strip: %d, signal: %f\n",
+    // printf("-I-<StandHitsProducer::CreateSiliconCluster> Station: %d, module: %d, side: %d, strip: %d, signal: %f\n",
     //        station, module, side, strip, signal);
 
     return cluster;
@@ -145,7 +144,6 @@ void StandHitsProducer::CalculateLocalCoordinates(StandClustersContainer &cluste
         CalculateLocalCoordinate(cluster);
         // cluster->Print();
     }
-
 }
 
 void StandHitsProducer::CalculateLocalCoordinate(StandSiliconCluster* siliconCluster)
@@ -161,6 +159,7 @@ void StandHitsProducer::CalculateLocalCoordinate(StandSiliconCluster* siliconClu
         coordinateAmplitudePairs.push_back({coordinate, stripSignalPair.second});
     }
 
+    // calculate center of mass
     Double_t coordAmpSum = 0;
     Double_t amplitudeSum = 0;
     for (auto &&coordAmpPair : coordinateAmplitudePairs)
@@ -194,21 +193,16 @@ void StandHitsProducer::ProcessSiliconClustersIntoHits(StandClustersContainer &c
         for (auto &&clusterX : clustersSideX)
         {
             if (clusterX->GetClusterSize() > 4)
-            {
                 continue;
-            }
 
             for (auto &&clusterY : clustersSideY)
             {
                 if (clusterY->GetClusterSize() > 4)
-                {
                     continue;
-                }
             
                 ProcessSiliconClustersIntoHit(clusterX, clusterY);
             }
         }
-        
     }
 }
 
@@ -227,8 +221,6 @@ void StandHitsProducer::ProcessSiliconClustersIntoHit(StandSiliconCluster* clust
         hit->SetClustersSizes(clusterX->GetClusterSize(), clusterY->GetClusterSize());
         // hit->Print();
     }
-    
-
 }
 
 void StandHitsProducer::OpenInputOutputFiles()
@@ -250,7 +242,6 @@ void StandHitsProducer::ConfigureInput()
     cout << "-I-<StandHitsProducer::ConfigureInput>" << endl;
 
     fIOManager->SetInputFileName(fInputFileName);
-    // fIOManager->RegisterInputBranch("EventHeader", "BmnEventHeader");
     fIOManager->RegisterInputBranch("SILICON", "BmnSiliconDigit");
     fIOManager->RegisterInputBranch("DCH", "BmnDchDigit");
 }
@@ -260,21 +251,17 @@ void StandHitsProducer::ConfigureOutput()
     cout << "-I-<StandHitsProducer::ConfigureOutput> Name: "<< fOutputFileName << endl;
 
     fIOManager->SetOutputFileName(fOutputFileName);
-
-    // fIOManager->RegisterOutputBranch("EventHeader", "BmnEventHeader");
     fIOManager->RegisterOutputBranch("SiliconHits", "StandSiliconHit");
 }
 
 void StandHitsProducer::GetInputData()
 {
-    // fInputEventHeader = fIOManager->GetInputDataArray("BmnEventHeader");
     fSiliconDigitsArray = fIOManager->GetInputDataArray("BmnSiliconDigit");
     fStrawDigitsArray = fIOManager->GetInputDataArray("BmnDchDigit");
 }
 
 void StandHitsProducer::GetOutputData()
 {
-    // fOutputEventHeader = fIOManager->GetOutputDataArray("BmnEventHeader");
     fSiliconHitsArray = fIOManager->GetOutputDataArray("StandSiliconHit");
 }
 
