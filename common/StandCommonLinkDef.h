@@ -6,5 +6,6 @@
 
 #pragma link C++ class StandIOManager+;
 #pragma link C++ class StandSiliconGeoMapper+;
+#pragma link C++ class StandReverseSiliconGeoMapper+;
 
 #endif

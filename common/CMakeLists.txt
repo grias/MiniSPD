@@ -16,11 +16,13 @@ link_directories( ${LINK_DIRECTORIES})
 set(SRCS
     StandIOManager.cxx
     StandSiliconGeoMapper.cxx
+    StandReverseSiliconGeoMapper.cxx
 )
 
 set(HEADERS
     StandIOManager.h
     StandSiliconGeoMapper.h
+    StandReverseSiliconGeoMapper.h
 )
 
 Set(LINKDEF StandCommonLinkDef.h)
