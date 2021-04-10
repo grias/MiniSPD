@@ -174,3 +174,9 @@ void StandIOManager::CreateOutputBranches()
     }
 }
 
+void StandIOManager::FillEvent()
+{
+    fOutputTree->Fill();
+    ClearArrays();
+}
+

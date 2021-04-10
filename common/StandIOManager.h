@@ -37,7 +37,7 @@ public:
     void FinishInput();
     void FinishOutput();
 
-    void FillEvent() { fOutputTree->Fill(); }
+    void FillEvent();
     void WriteTreeIntoOutputFile() { fOutputTree->Write(); }
     
     TClonesArray* GetInputDataArray(TString className);
