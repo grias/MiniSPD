@@ -8,6 +8,7 @@ const Int_t stationMap[8] = {0, 0, 1, 1, 1, 1, 2, 2};
 const Int_t modMap[8] = {0, 1, 0, 1, 2, 3, 0, 1};
 
 map<Int_t, TH2D *> hOccupMap;
+map<Int_t, TH1D *> hOccupMapX;
 map<Int_t, TH2D *> hAmplitudesMap;
 TH1I* hClustersSizeX;
 TH1I* hClustersSizeY;
@@ -22,22 +23,30 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
     TString histName;
     TString histDiscription;
     TH2D *hist;
+    TH1D *hist1d;
     for (size_t iHist = 0; iHist < 8; iHist++)
     {
         Int_t key = 10 * stationMap[iHist] + 1 * modMap[iHist];
+
+        Int_t nBins = 75;
 
         // occupancy
         histName = Form("h2_station%d_mod%d_occupancy", stationMap[iHist], modMap[iHist]);
         histDiscription = Form("Module occupancy (station %d, module %d);X [mm];Y [mm]", stationMap[iHist], modMap[iHist]);
         if (key / 10 == 1)
         {
-            hist = new TH2D(histName, histDiscription, 630, 0, 63, 630, 0, 63);
+            hist = new TH2D(histName, histDiscription, nBins, 0, 63, nBins, -10, 70);
         }
         else
         {
-            hist = new TH2D(histName, histDiscription, 630, 0, 63, 1260, 0, 126);
+            hist = new TH2D(histName, histDiscription, nBins, 0, 63, nBins*2, -10, 140);
         }
         hOccupMap.insert({key, hist});
+
+        histName = Form("h1_station%d_mod%d_occupancy_x", stationMap[iHist], modMap[iHist]);
+        histDiscription = Form("Module occupancy X (station %d, module %d);X [mm]; count", stationMap[iHist], modMap[iHist]);
+        hist1d = new TH1D(histName, histDiscription, 700, 0, 63);
+        hOccupMapX.insert({key, hist1d});
 
         // Amplitudes
         histName = Form("h2_station%d_mod%d_amplitudes", stationMap[iHist], modMap[iHist]);
@@ -50,7 +59,7 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
     {
         histName = Form("h2_station%d_occupancy", iStation);
         histDiscription = Form("Station %d occupancy;X [mm];Y [mm]", iStation);
-        hist = new TH2D(histName, histDiscription, 100, 200, 200, 100, -200, 200);
+        hist = new TH2D(histName, histDiscription, 150, 20, 170.1, 150, -170.1, -20);
         hStationOccups.push_back(hist);
     }
     
@@ -135,6 +144,12 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
 
             Int_t key = 10 * station + 1 * module;
             hOccupMap.find(key)->second->Fill(localX, localY);
+
+            if (clusterSizeX == 1 && clusterSizeY == 1)
+            {
+                hOccupMapX.find(key)->second->Fill(localX);
+            }
+
             hAmplitudesMap.find(key)->second->Fill(amplitudeX, amplitudeY);
             hClustersSizeX->Fill(clusterSizeX);
             hClustersSizeY->Fill(clusterSizeY);
@@ -190,9 +205,23 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
         {
             canvas->SaveAs(Form("pictures/run%04d_si_occup_mod%02d.png", runId, key));
         }
-        
         delete canvas;
+    }
 
+    for (auto &&pair : hOccupMapX)
+    {
+        auto key = pair.first;
+        auto hist = pair.second;
+
+        TCanvas *canvas;
+        canvas = new TCanvas(Form("canvas%d", key), "", 630, 630);
+        hist->Write();
+        hist->Draw("");
+        if (saveImages)
+        {
+            canvas->SaveAs(Form("pictures/run%04d_si_occup_x_mod%02d.png", runId, key));
+        }
+        delete canvas;
     }
 
     for (auto &&pair : hAmplitudesMap)
@@ -224,7 +253,7 @@ void SiliconHitsAnalysisHist(UInt_t runId = 0, Int_t saveImages = 0)
     }
     
 
-    TCanvas *canvas = new TCanvas("canvas", "", 630, 630);
+    TCanvas *canvas = new TCanvas("canvas", "", 600, 800);
     hClustersSizeX->Write();
     hClustersSizeY->Write();
     hClustersSizeX->SetLineColor(2);

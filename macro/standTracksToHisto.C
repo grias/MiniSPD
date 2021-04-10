@@ -50,14 +50,12 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
 
     for (size_t iStation = 0; iStation < 3; iStation++)
     {
-        histName = Form("h2_station%d_residuals_rxry", iStation);
-        histDiscription = Form("Res X vs res Y (station %d); res X [mm]; res Y [mm]", iStation);
+        histName = Form("h2_station%zu_residuals_rxry", iStation);
+        histDiscription = Form("Res X vs res Y (station %zu); res X [mm]; res Y [mm]", iStation);
         hResidStation[iStation] = new TH2D(histName, histDiscription, 100, -5, 5, 100, -5, 5);
     }
-    
-    
 
-    hChiSquare = new TH1D("h1_chisquare", "Chi square distribution;Chi square", 500, 0, 500);
+    hChiSquare = new TH1D("h1_chisquare", "Chi square distribution;Chi square", 500, 0, 100);
 
     hTrackAngleX = new TH1D("h1_trackangle_x", "Tracks slope distribution (plane XZ);Angle [deg]", 40, -20, 20);
     hTrackAngleY = new TH1D("h1_trackangle_y", "Tracks slope distribution (plane YZ);Angle [deg]", 40, -20, 20);
@@ -117,8 +115,10 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
     printf("NEvents: %lld\n", nEvents);
     for (Int_t iEv = 0; iEv < nEvents; iEv++)
     {
-        if (kVERBOSE_MODE)
-            printf("\nEvent %d\n", iEv);
+        if (kVERBOSE_MODE) printf("\nEvent %d\n", iEv);
+
+        // if (iEv == 10000) break;
+        
 
         branchSILICON->GetEntry(iEv);
 
@@ -133,7 +133,8 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
             Double_t chiX = siTrack->GetChiSquare(0);
             Double_t chiY = siTrack->GetChiSquare(1);
             Double_t chiSquareSum = sqrt(chiX*chiX + chiY*chiY);
-            hChiSquare->Fill(chiSquareSum);
+            // hChiSquare->Fill(chiSquareSum);
+            hChiSquare->Fill(chiX);
             if (chiSquareSum > 10) continue;
             // if (siTrack->GetModule(1) != 3) continue;
             
@@ -157,8 +158,6 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
                 hResidStation[iStation]->Fill(residX, residY);
                 hResidMapRxRy.find(key)->second->Fill(residX, residY);
                 hResidMapRxY.find(key)->second->Fill(residX, hitPosY[iStation]);
-
-                
             }
 
             TGraph *graphZX = new TGraph(3, hitPosZ, hitPosX);
@@ -197,8 +196,7 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
             canvas->SaveAs(Form("pictures/run%04d_si_track_residRxRy_st%zu.png", runId, iStation));
         }
         delete canvas;
-    }
-    
+    }    
 
     for (auto &&pair : hResidMapRxRy)
     {
@@ -215,20 +213,20 @@ void standTracksToHisto(UInt_t runId = 0, Int_t saveImages = 0)
         delete canvas;
     }
 
-    for (auto &&pair : hResidMapRxY)
-    {
-        auto key = pair.first;
-        auto hist = pair.second;
+    // for (auto &&pair : hResidMapRxY)
+    // {
+    //     auto key = pair.first;
+    //     auto hist = pair.second;
 
-        TCanvas *canvas = new TCanvas(Form("canvas%d", key), "", 1000, 1000);
-        hist->Write();
-        hist->Draw("COLZ");
-        if (saveImages)
-        {
-            canvas->SaveAs(Form("pictures/run%04d_si_track_residRxY_mod%02d.png", runId, key));
-        }
-        delete canvas;
-    }
+    //     TCanvas *canvas = new TCanvas(Form("canvas%d", key), "", 1000, 1000);
+    //     hist->Write();
+    //     hist->Draw("COLZ");
+    //     if (saveImages)
+    //     {
+    //         canvas->SaveAs(Form("pictures/run%04d_si_track_residRxY_mod%02d.png", runId, key));
+    //     }
+    //     delete canvas;
+    // }
 
     TCanvas *canvas = new TCanvas("canvas", "", 1000, 1000);
 

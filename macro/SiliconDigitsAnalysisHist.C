@@ -68,6 +68,8 @@ void SiliconDigitsAnalysisHist(UInt_t runId = 0)
         tree->SetBranchAddress("SILICON", &SiliconDigits);
     }
 
+    int goodEvents = 0;
+
     // --- Event loop ---------------------------------------------------------------------
     Long64_t nEvents;
     if (runId < 1)
@@ -81,10 +83,20 @@ void SiliconDigitsAnalysisHist(UInt_t runId = 0)
     printf("NEvents: %lld\n", nEvents);
     for (Int_t iEv = 0; iEv < nEvents; iEv++)
     {
+        // if (iEv > 100) break;
+        
         if (kVERBOSE_MODE)
         printf("\nEvent %d\n", iEv);
 
         branchSILICON->GetEntry(iEv);
+
+        array<int, 3> stationHasActiveStrips {0, 0, 0};
+        int moduleHasActiveStrips[3][4] = {
+            {0,0,0,0},
+            {0,0,0,0},
+            {0,0,0,0}
+        };
+        
 
         // Silicon digits
         for (size_t iDigit = 0; iDigit < SiliconDigits->GetEntriesFast(); iDigit++)
@@ -100,6 +112,15 @@ void SiliconDigitsAnalysisHist(UInt_t runId = 0)
             Double_t signal = siDigit->GetStripSignal();
             Int_t key = 100 * station + 10 * module + layer;
 
+            if (layer == 0)
+            {
+                moduleHasActiveStrips[station][module] += moduleHasActiveStrips[station][module] % 10 == 0 ? 1 : 0;
+            }
+            else
+            {
+                moduleHasActiveStrips[station][module] += moduleHasActiveStrips[station][module] / 10 == 0 ? 10 : 0;
+            }
+
             hOccupMap.find(key)->second->Fill(strip);
             h1Signal[station]->Fill(abs(signal));
             // h1Signal[station]->Fill(signal);
@@ -108,26 +129,50 @@ void SiliconDigitsAnalysisHist(UInt_t runId = 0)
             printf("<SiDigit> Station: %d, Module: %d, Layer: %d, Strip: %d, Signal: %f\n", station, module, layer, strip, signal);
         }
 
+        for (size_t iMod = 0; iMod < 4; iMod++)
+        {
+            if (moduleHasActiveStrips[0][iMod] == 11)
+                stationHasActiveStrips[0] = 1;
+
+            if (moduleHasActiveStrips[1][iMod] == 11)
+                stationHasActiveStrips[1] = 1;
+
+            if (moduleHasActiveStrips[2][iMod] == 11)
+                stationHasActiveStrips[2] = 1;
+        }
+
+        if (stationHasActiveStrips[0] && stationHasActiveStrips[1] && stationHasActiveStrips[2])
+        {
+            goodEvents++;
+            if (kVERBOSE_MODE)
+                printf("Good event\n");
+        }
+            
+
+
     } // end of event
     printf("File ended\n");
+    printf("Good events %d/%lld\n", goodEvents, nEvents);
 
     // --- DRAW ------------------------------------------------------------------------
-    // for (auto const &[key, hist] : hOccupMap)
-    // {
-    //     TCanvas *canvas = new TCanvas(Form("canvas%d", key), "", 1200, 600);
-    //     canvas->SetLogy();
-    //     hist->Draw();
-    //     canvas->SaveAs(Form("pictures/run%04d_occup_mod%03d.png", runId, key));
-    //     canvas->SaveAs(Form("pictures_C/run%04d_occup_mod%03d.C", runId, key));
-    // }
+    for (auto const &keyHistPair : hOccupMap)
+    {
+        auto key = keyHistPair.first;
+        auto hist = keyHistPair.second;
+        TCanvas *canvas = new TCanvas(Form("canvas%d", key), "", 800, 600);
+        // canvas->SetLogy();
+        hist->Draw();
+        canvas->SaveAs(Form("pictures/run%04d_occup_mod%03d.png", runId, key));
+        canvas->SaveAs(Form("pictures_C/run%04d_occup_mod%03d.C", runId, key));
+    }
 
-    // for (size_t i = 0; i < 3; i++)
-    // {
-    //     auto cSignal = new TCanvas("cSignal", "Silicon signal", 800, 600);
-    //     // cSignal->SetLogy(kTRUE);
-    //     h1Signal[i]->Draw();
-    //     cSignal->SaveAs(Form("pictures/run%04d_signal_st%d.png", runId, i));
-    // }
+    for (Int_t i = 0; i < 3; i++)
+    {
+        auto cSignal = new TCanvas("cSignal", "Silicon signal", 600, 800);
+        // cSignal->SetLogy(kTRUE);
+        h1Signal[i]->Draw();
+        cSignal->SaveAs(Form("pictures/run%04d_signal_st%d.png", runId, i));
+    }
     auto cSignal = new TCanvas("cSignal", "Silicon signal", 800, 600);
     h1Signal[0]->Draw();
 }

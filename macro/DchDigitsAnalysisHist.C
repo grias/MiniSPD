@@ -2,7 +2,8 @@ const bool kVERBOSE_MODE = false;
 // const bool kVERBOSE_MODE = true;
 
 const Int_t h1COLORS[2] = {2, 9}; // blue, red
-vector<Int_t> runs = {780, 802, 803, 811, 816, 817, 818, 829, 831, 832, 838, 840, 842, 843, 844, 848, 851};
+// vector<Int_t> runs = {780, 802, 803, 811, 816, 817, 818, 829, 831, 832, 838, 840, 842, 843, 844, 848, 851};
+vector<Int_t> runs = {1};
 
 TH1I *h1OccupancyArr[2];
 TH1I *h1ClusterArr[2];
@@ -19,7 +20,7 @@ void DchDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
     for (size_t iHist = 0; iHist < 2; iHist++)
     {
         TString h1OccupancyName = Form("h1_occup_plane%zu", iHist);
-        TString h1OccupancyDisc = Form("Straw occupancies (plane %zu);Ch;", iHist);
+        TString h1OccupancyDisc = Form("Straw occupancies (plane %zu);Channel;", iHist);
         h1OccupancyArr[iHist] = new TH1I(h1OccupancyName, h1OccupancyDisc, 64, 0 - 0.5, 64 - 0.5);
         h1OccupancyArr[iHist]->SetLineWidth(3);
         h1OccupancyArr[iHist]->SetLineColor(h1COLORS[iHist]);
@@ -96,6 +97,9 @@ void DchDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
             Double_t time = dchDigit->GetTime();
             Int_t refId = dchDigit->GetRefId();
 
+            h1Time->Fill(time);
+            h1OccupancyArr[plane]->Fill(wire);
+
             if (kVERBOSE_MODE)
                 printf("<DCHDigit> Plane: %d, Wire: %d, GetTime: %f, RefId: %d, CompareToPrev %d\n", plane, wire, time, refId, compareToPrev);
 
@@ -149,6 +153,8 @@ void DchDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
             }
         }
 
+        
+
         if (nPairsPlane0 == 1 && nPairsPlane1 == 1)
         {
             for (size_t iDigit = 0; iDigit < nDigits; iDigit++)
@@ -161,8 +167,7 @@ void DchDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
                     wire = 63 - wire;
                 Double_t time = dchDigit->GetTime();
 
-                h1Time->Fill(time);
-                h1OccupancyArr[plane]->Fill(wire);
+                
 
                 if (plane == 0)
                 {
@@ -210,7 +215,7 @@ void DchDigitsAnalysisHist(UInt_t runId = 0, Int_t drawHistKey = -1)
         h1OccupancySum->GetXaxis()->SetNdivisions(64);
         h1OccupancySum->GetXaxis()->SetLabelSize(0.02);
         canvas->SetLogy(0);
-        h1OccupancySum->Draw();
+        // h1OccupancySum->Draw();
         h1OccupancyArr[0]->Draw("SAME");
         h1OccupancyArr[1]->Draw("SAME");
         canvas->BuildLegend();

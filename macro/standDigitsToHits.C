@@ -14,13 +14,6 @@ void standDigitsToHits(Int_t run, Int_t iEvent = -1)
     {
         hitsProducer->ProduceHitsFromAllEvents();
     }
-    else if (iEvent == -2)
-    {
-        Int_t iEvent = 0;
-        for (string line; getline(cin, line);) {
-            hitsProducer->ProduceHitsFromOneEvent(iEvent++);
-        }
-    }
     else
     {
         hitsProducer->ProduceHitsFromOneEvent(iEvent);
