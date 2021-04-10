@@ -33,5 +33,6 @@ CMakeFiles
 *.png
 macro/pictures_C/*
 macro/*.data
+macro/*.dat
 macro/data/*
 .vscode
