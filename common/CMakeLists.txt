@@ -27,6 +27,6 @@ set(HEADERS
 
 Set(LINKDEF StandCommonLinkDef.h)
 Set(LIBRARY_NAME StandCommon)
-Set(DEPENDENCIES Physics)
+Set(DEPENDENCIES Physics RIO Tree)
 
 GENERATE_LIBRARY()
