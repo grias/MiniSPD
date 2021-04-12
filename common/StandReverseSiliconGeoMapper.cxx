@@ -12,7 +12,7 @@ Int_t StandReverseSiliconGeoMapper::CalculateStripForLocalCoordinate(Int_t stati
 
 Double_t StandReverseSiliconGeoMapper::CalculateInterStripForLocalCoordinate(Int_t station, Int_t module, Int_t side, Double_t localCoord)
 {
-    Int_t strip = std::round((localCoord - fFirstStripOffset[side]) / fPitch[side]);
+    Double_t strip = (localCoord - fFirstStripOffset[side]) / fPitch[side];
 
     if (fStripsNumberCorrection[station][module][side])
         strip = fStripsNumberCorrection[station][module][side] - strip;
