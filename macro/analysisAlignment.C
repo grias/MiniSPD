@@ -1,22 +1,3 @@
-void OpenInput();
-void CreateHisto();
-void DrawHisto();
-
-const Double_t degToRad = 3.14159265359 / 180.;
-
-array<TH2D *, 8> hResVsX;
-array<TH2D *, 3> hStationOccups;
-TH2D *hCoordCorrelX;
-
-TMultiGraph *HitsZX;
-TMultiGraph *HitsZY;
-TMultiGraph *HitsXY;
-
-const Int_t fStationMap[8] = {0, 0, 1, 1, 1, 1, 2, 2};
-const Int_t fModMap[8] = {0, 1, 0, 1, 2, 3, 0, 1};
-const Int_t fStationModToHistMap[3][4] = {{0,1,-1,-1}, {2,3,4,5}, {6,7,-1,-1}};
-
-Int_t fRunId;
 TTree *fTreeTracks;
 TTree *fTreeHits;
 TBranch *fBranchSiTracks;
@@ -24,14 +5,85 @@ TBranch *fBranchSiHits;
 TClonesArray *fSiliconTracks;
 TClonesArray *fSiliconHits;
 
-void standAlignment(Int_t runId = 1)
+const Double_t degToRad = 3.14159265359 / 180.;
+
+const Int_t fStationMap[8] = {0, 0, 1, 1, 1, 1, 2, 2};
+const Int_t fModMap[8] = {0, 1, 0, 1, 2, 3, 0, 1};
+const Int_t fStationModToHistMap[3][4] = {{0,1,-1,-1}, {2,3,4,5}, {6,7,-1,-1}};
+
+array<TH2D *, 8> hResVsX;
+array<TH2D *, 3> hStationOccups;
+TH2D *hCoordCorrelX;
+TMultiGraph *HitsZX;
+TMultiGraph *HitsZY;
+TMultiGraph *HitsXY;
+
+void OpenInput(UInt_t runId);
+void CreateHisto();
+void Analyze();
+void DrawHisto(UInt_t runId);
+
+void analysisAlignment(Int_t runId)
 {
-    fRunId = runId;
-
-    OpenInput();
+    OpenInput(runId);
     CreateHisto();
+    Analyze();
+    DrawHisto(runId);    
+}
 
-    // --- Event loop ---------------------------------------------------------------------
+void OpenInput(UInt_t runId)
+{
+    // --- Input Tracks -----------------------------------------------------------------
+    TString inTracksFileName = Form("data/stand_run%04d_tracks.root", runId);
+    TFile *inTracksFile = new TFile(inTracksFileName);
+    if (!inTracksFile) return;
+    fTreeTracks = (TTree *)inTracksFile->Get("cbmsim");
+    fBranchSiTracks = fTreeTracks->GetBranch("SiliconTracks");
+    if (!fBranchSiTracks) return;
+    fBranchSiTracks->SetAutoDelete(kTRUE);
+    fTreeTracks->SetBranchAddress("SiliconTracks", &fSiliconTracks);
+
+    // --- Input Hits -----------------------------------------------------------------
+    TString inHitsFileName = Form("data/stand_run%04d_hits.root", runId);
+    TFile *inHitsFile = new TFile(inHitsFileName);
+    if (!inHitsFile) return;
+    fTreeHits = (TTree *)inHitsFile->Get("cbmsim");
+    fBranchSiHits = fTreeHits->GetBranch("SiliconHits");
+    if (!fBranchSiHits) return;
+    fBranchSiHits->SetAutoDelete(kTRUE);
+    fTreeHits->SetBranchAddress("SiliconHits", &fSiliconHits);
+}
+
+void CreateHisto()
+{
+    TString histName;
+    TString histDiscription;
+
+    for (Int_t iHist = 0; iHist < 8; iHist++)
+    {
+        histName = Form("h2_station%d_mod%d_residuals_rxx", fStationMap[iHist], fModMap[iHist]);
+        histDiscription = Form("ResX vs X (station %d, module %d); res X [mm]; X [mm]", fStationMap[iHist], fModMap[iHist]);
+        hResVsX[iHist] = new TH2D(histName, histDiscription, 300, -0.5, 0.5, 10, 0, 63);
+    }
+
+    for (int iStation = 0; iStation < 3; iStation++)
+    {
+        histName = Form("h2_station%d_occupancy", iStation);
+        histDiscription = Form("Station %d occupancy;X [mm];Y [mm]", iStation);
+        hStationOccups[iStation] = new TH2D(histName, histDiscription, 100, 200, 200, 100, -200, 200);
+    }
+
+    histName = Form("h2_coordinate_correlation_x");
+    histDiscription = Form("Correlation X;St1 X [mm]; St2 X [mm]");
+    hCoordCorrelX = new TH2D(histName, histDiscription, 100, 200, 200, 100, 0, 200);
+
+    HitsZX = new TMultiGraph();
+    HitsZY = new TMultiGraph();
+    HitsXY = new TMultiGraph();
+}
+
+void Analyze()
+{
     UInt_t goodTracks = 0;
     Long64_t nEvents = fTreeTracks->GetEntries();
     printf("NEvents: %lld\n", nEvents);
@@ -40,8 +92,7 @@ void standAlignment(Int_t runId = 1)
         fBranchSiTracks->GetEntry(iEv);
         fBranchSiHits->GetEntry(iEv);
 
-        Int_t nTracks = fSiliconTracks->GetEntriesFast();
-        if (!nTracks) continue;
+        if (!fSiliconTracks->GetEntriesFast()) continue;
 
         auto siTrack = (StandSiliconTrack *)fSiliconTracks->At(0);
 
@@ -112,9 +163,6 @@ void standAlignment(Int_t runId = 1)
         Double_t hitPosY[3] = {siTrack->GetHitPositionY(0), siTrack->GetHitPositionY(1), siTrack->GetHitPositionY(2)};
         Double_t hitPosZ[3] = {siTrack->GetHitPositionZ(0), siTrack->GetHitPositionZ(1), siTrack->GetHitPositionZ(2)};
 
-        // cout<<"X: "<<hitPosX[2]<<endl;
-        // printf("X: %f\n", hitPosX[2]);
-
         TGraph *graphZX = new TGraph(3, hitPosZ, hitPosX);
         TGraph *graphZY = new TGraph(3, hitPosZ, hitPosY);
         TGraph *graphXY = new TGraph(3, hitPosX, hitPosY);
@@ -122,67 +170,12 @@ void standAlignment(Int_t runId = 1)
         HitsZX->Add(graphZX, "C*");
         HitsZY->Add(graphZY, "C*");
         HitsXY->Add(graphXY, "C*");
-
-        
         
     } // end of event
     printf("\nGood tracks: %d\n", goodTracks);
-
-    DrawHisto();    
 }
 
-void OpenInput()
-{
-    // --- Input Tracks -----------------------------------------------------------------
-    TString inTracksFileName = Form("data/stand_run%04d_tracks.root", fRunId);
-    TFile *inTracksFile = new TFile(inTracksFileName);
-    if (!inTracksFile) return;
-    fTreeTracks = (TTree *)inTracksFile->Get("cbmsim");
-    fBranchSiTracks = fTreeTracks->GetBranch("SiliconTracks");
-    if (!fBranchSiTracks) return;
-    fBranchSiTracks->SetAutoDelete(kTRUE);
-    fTreeTracks->SetBranchAddress("SiliconTracks", &fSiliconTracks);
-
-    // --- Input Hits -----------------------------------------------------------------
-    TString inHitsFileName = Form("data/stand_run%04d_hits.root", fRunId);
-    TFile *inHitsFile = new TFile(inHitsFileName);
-    if (!inHitsFile) return;
-    fTreeHits = (TTree *)inHitsFile->Get("cbmsim");
-    fBranchSiHits = fTreeHits->GetBranch("SiliconHits");
-    if (!fBranchSiHits) return;
-    fBranchSiHits->SetAutoDelete(kTRUE);
-    fTreeHits->SetBranchAddress("SiliconHits", &fSiliconHits);
-}
-
-void CreateHisto()
-{
-    TString histName;
-    TString histDiscription;
-
-    for (Int_t iHist = 0; iHist < 8; iHist++)
-    {
-        histName = Form("h2_station%d_mod%d_residuals_rxx", fStationMap[iHist], fModMap[iHist]);
-        histDiscription = Form("ResX vs X (station %d, module %d); res X [mm]; X [mm]", fStationMap[iHist], fModMap[iHist]);
-        hResVsX[iHist] = new TH2D(histName, histDiscription, 300, -1, 1, 10, 0, 63);
-    }
-
-    for (int iStation = 0; iStation < 3; iStation++)
-    {
-        histName = Form("h2_station%d_occupancy", iStation);
-        histDiscription = Form("Station %d occupancy;X [mm];Y [mm]", iStation);
-        hStationOccups[iStation] = new TH2D(histName, histDiscription, 100, 200, 200, 100, -200, 200);
-    }
-
-    histName = Form("h2_coordinate_correlation_x");
-    histDiscription = Form("Correlation X;St1 X [mm]; St2 X [mm]");
-    hCoordCorrelX = new TH2D(histName, histDiscription, 100, 200, 200, 100, 0, 200);
-
-    HitsZX = new TMultiGraph();
-    HitsZY = new TMultiGraph();
-    HitsXY = new TMultiGraph();
-}
-
-void DrawHisto()
+void DrawHisto(UInt_t runId)
 {
     gStyle->SetOptFit();
 
@@ -190,7 +183,7 @@ void DrawHisto()
     {
         auto canvas = new TCanvas(Form("canvas%d", iStation), "", 630, 630);
         hStationOccups[iStation]->Draw("COL");
-        canvas->SaveAs(Form("pictures/run%04d_si_tracks_station%d_occup.png", fRunId, iStation));
+        canvas->SaveAs(Form("pictures/run%04d_tracks_si_station%d_occup.png", runId, iStation));
         delete canvas;
     }
     
@@ -199,7 +192,7 @@ void DrawHisto()
     for (size_t iHist = 0; iHist < 8; iHist++)
     {
         hResVsX[iHist]->Draw("COL");
-        cResVsX->SaveAs(Form("pictures/run%04d_si_tracks_resxvsx_st%d_mod%d.png", fRunId, fStationMap[iHist], fModMap[iHist]));
+        cResVsX->SaveAs(Form("pictures/run%04d_tracks_si_resxvsx_st%d_mod%d.png", runId, fStationMap[iHist], fModMap[iHist]));
     }
 
     // profile
@@ -208,7 +201,7 @@ void DrawHisto()
         auto profile = hResVsX[iHist]->ProfileY();
         profile->GetYaxis()->SetTitle("Res X [mm]");
         profile->Draw();
-        cResVsX->SaveAs(Form("pictures/run%04d_si_tracks_resxvsx_st%d_mod%d_profile.png", fRunId, fStationMap[iHist], fModMap[iHist]));
+        cResVsX->SaveAs(Form("pictures/run%04d_tracks_si_resxvsx_st%d_mod%d_profile.png", runId, fStationMap[iHist], fModMap[iHist]));
     }
 
     // projection
@@ -227,25 +220,25 @@ void DrawHisto()
         // projection->Fit("gaus", "Q+", "", -0.2, 0.2);
         // projection->Fit(fitFun, "Q", "", -0.2, 0.2);
         projection->Draw();
-        cResVsX->SaveAs(Form("pictures/run%04d_si_tracks_resxvsx_st%d_mod%d_projection.png", fRunId, fStationMap[iHist], fModMap[iHist]));
+        cResVsX->SaveAs(Form("pictures/run%04d_tracks_si_resxvsx_st%d_mod%d_projection.png", runId, fStationMap[iHist], fModMap[iHist]));
     }
 
     // auto cCoordCorrelX = new TCanvas("c_CoordCorrelX", "", 1000, 1000);
     // hCoordCorrelX->Draw("COL");
-    // cCoordCorrelX->SaveAs(Form("pictures/run%04d_tracks_ccordCorrel.png", fRunId));
+    // cCoordCorrelX->SaveAs(Form("pictures/run%04d_tracks_ccordCorrel.png", runId));
 
 
     auto canvas = new TCanvas("canvas_graph", "", 1000, 1000);
     HitsZX->Draw("a");
-    canvas->SaveAs(Form("pictures/run%04d_si_tracks_ZX.png", fRunId));
+    canvas->SaveAs(Form("pictures/run%04d_tracks_si_ZX.png", runId));
     canvas->Clear();
 
     HitsZY->Draw("a");
-    canvas->SaveAs(Form("pictures/run%04d_si_tracks_ZY.png", fRunId));
+    canvas->SaveAs(Form("pictures/run%04d_tracks_si_ZY.png", runId));
     canvas->Clear();
 
     HitsXY->Draw("a");
-    canvas->SaveAs(Form("pictures/run%04d_si_tracks_XY.png", fRunId));
+    canvas->SaveAs(Form("pictures/run%04d_tracks_si_XY.png", runId));
     canvas->Clear();
 
 }

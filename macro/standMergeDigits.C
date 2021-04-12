@@ -7,8 +7,6 @@ void standMergeDigits()
 
     vector<Int_t> runsToMerge = {780, 802, 803, 811, 816, 817, 818, 829, 831, 832, 838, 840, 842, 843, 844, 848, 851, 693, 709, 716, 721, 744, 758, 849, 857, 859, 861, 868, 869, 871, 916, 957, 966, 967}; // mix
 
-    
-
     auto ioman = new StandIOManager();
     ioman->SetOutputFileName("data/stand_run0001_digits.root");
     ioman->RegisterOutputBranch("SILICON", "BmnSiliconDigit");
