@@ -41,8 +41,8 @@ void CreateHisto()
 
     hChiSquare = new TH1D("h1_chisquare", "Chi square distribution;Chi square", 500, 0, 100);
 
-    hTrackAngleX = new TH1D("h1_trackangle_x", "Tracks slope distribution (plane XZ);Angle [deg]", 40, -20, 20);
-    hTrackAngleY = new TH1D("h1_trackangle_y", "Tracks slope distribution (plane YZ);Angle [deg]", 40, -20, 20);
+    hTrackAngleX = new TH1D("h1_trackangle_x", "Tracks slope distribution (plane XZ);Angle [deg]", 100, -10, 10);
+    hTrackAngleY = new TH1D("h1_trackangle_y", "Tracks slope distribution (plane YZ);Angle [deg]", 100, -10, 10);
 }
 
 void Analyze()
@@ -78,6 +78,8 @@ void Analyze()
 
 void DrawHisto(UInt_t runId)
 {
+    gSystem->Exec("mkdir -p pictures");
+
     gStyle->SetOptFit();
 
     TCanvas *canvas = new TCanvas("canvas", "", 1000, 1000);
@@ -92,7 +94,7 @@ void DrawHisto(UInt_t runId)
     canvas->SaveAs(Form("pictures/run%04d_tracks_si_angleX.png", runId));
     canvas->Clear();
 
-    hTrackAngleY->Draw("HIST");
-    canvas->SaveAs(Form("pictures/run%04d_tracks_si_angleY.png", runId));
-    canvas->Clear();
+    // hTrackAngleY->Draw("HIST");
+    // canvas->SaveAs(Form("pictures/run%04d_tracks_si_angleY.png", runId));
+    // canvas->Clear();
 }

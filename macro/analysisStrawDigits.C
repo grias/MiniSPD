@@ -181,6 +181,8 @@ void Analyze()
 
 void DrawHisto(UInt_t runId)
 {
+    gSystem->Exec("mkdir -p pictures");
+    
     TCanvas *canvas = new TCanvas("canvas", "", 1200, 800);
 
     h1OccupancyArr[0]->Draw("");

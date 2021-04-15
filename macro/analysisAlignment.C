@@ -17,6 +17,7 @@ TH2D *hCoordCorrelX;
 TMultiGraph *HitsZX;
 TMultiGraph *HitsZY;
 TMultiGraph *HitsXY;
+TH1D *hTrackResolutionX;
 
 void OpenInput(UInt_t runId);
 void CreateHisto();
@@ -63,7 +64,7 @@ void CreateHisto()
     {
         histName = Form("h2_station%d_mod%d_residuals_rxx", fStationMap[iHist], fModMap[iHist]);
         histDiscription = Form("ResX vs X (station %d, module %d); res X [mm]; X [mm]", fStationMap[iHist], fModMap[iHist]);
-        hResVsX[iHist] = new TH2D(histName, histDiscription, 300, -0.5, 0.5, 10, 0, 63);
+        hResVsX[iHist] = new TH2D(histName, histDiscription, 100, -0.5, 0.5, 10, 0, 63);
     }
 
     for (int iStation = 0; iStation < 3; iStation++)
@@ -76,6 +77,10 @@ void CreateHisto()
     histName = Form("h2_coordinate_correlation_x");
     histDiscription = Form("Correlation X;St1 X [mm]; St2 X [mm]");
     hCoordCorrelX = new TH2D(histName, histDiscription, 100, 200, 200, 100, 0, 200);
+
+    histName = Form("h1_track_resolution_x");
+    histDiscription = Form("Track resolution X;resid [mm];");
+    hTrackResolutionX = new TH1D(histName, histDiscription, 100, 0, 0.5);
 
     HitsZX = new TMultiGraph();
     HitsZY = new TMultiGraph();
@@ -145,6 +150,7 @@ void Analyze()
 
         goodTracks++;
         // --- Data processing -----------------------------------------------------------
+        Double_t sigma = 0;
         for (size_t iStation = 0; iStation < 3; iStation++)
         {
             Int_t module = siTrack->GetModule(iStation);
@@ -155,7 +161,11 @@ void Analyze()
 
             Int_t histNumber = fStationModToHistMap[iStation][module];
             hResVsX[histNumber]->Fill(residX, siHit->GetLocalX());
+
+            sigma += residX*residX;
         }
+        sigma = sqrt(sigma);
+        hTrackResolutionX->Fill(sigma);
 
         hCoordCorrelX->Fill(siTrack->GetHitPositionX(0), siTrack->GetHitPositionX(2));
 
@@ -177,6 +187,8 @@ void Analyze()
 
 void DrawHisto(UInt_t runId)
 {
+    gSystem->Exec("mkdir -p pictures");
+
     gStyle->SetOptFit();
 
     for (int iStation = 0; iStation < 3; iStation++)
@@ -188,7 +200,7 @@ void DrawHisto(UInt_t runId)
     }
     
     // 2D histo
-    auto cResVsX = new TCanvas("c_resvsx", "", 800, 1000);
+    auto cResVsX = new TCanvas("c_resvsx", "", 800, 800);
     for (size_t iHist = 0; iHist < 8; iHist++)
     {
         hResVsX[iHist]->Draw("COL");
@@ -211,13 +223,20 @@ void DrawHisto(UInt_t runId)
     fitFun->SetParName(2,"Mean");
     fitFun->SetParName(3,"Sigma");
     fitFun->SetParameters(0,1,0,0.2);
+
+    TF1 *gausFixMp = new TF1("gausWithFixedMP","gaus(0)",-0.01,0.5);
+    gausFixMp->SetParName(0,"Height");
+    gausFixMp->SetParName(1,"Mean");
+    gausFixMp->SetParName(2,"Sigma");
+    gausFixMp->SetParameters(1,0,0.2);
+    gausFixMp->FixParameter(1, 0);
     
     // cResVsX->SetLogy(kTRUE);
     for (size_t iHist = 0; iHist < 8; iHist++)
     {
         auto projection = hResVsX[iHist]->ProjectionX();
         // projection->Fit("pol0", "CQ+");
-        // projection->Fit("gaus", "Q+", "", -0.2, 0.2);
+        projection->Fit("gaus", "Q+", "", -0.2, 0.2);
         // projection->Fit(fitFun, "Q", "", -0.2, 0.2);
         projection->Draw();
         cResVsX->SaveAs(Form("pictures/run%04d_tracks_si_resxvsx_st%d_mod%d_projection.png", runId, fStationMap[iHist], fModMap[iHist]));
@@ -227,6 +246,12 @@ void DrawHisto(UInt_t runId)
     // hCoordCorrelX->Draw("COL");
     // cCoordCorrelX->SaveAs(Form("pictures/run%04d_tracks_ccordCorrel.png", runId));
 
+    auto cResolutionX = new TCanvas("c_resol_x", "", 1000, 1000);
+    // hTrackResolutionX->Fit("gaus", "Q+", "", 0, 0.5);
+    hTrackResolutionX->Fit(gausFixMp, "BQ+", "", 0, 0.2);
+    hTrackResolutionX->Draw();
+    cResolutionX->SaveAs(Form("pictures/run%04d_tracks_si_resolution.png", runId));
+    cResolutionX->Clear();
 
     auto canvas = new TCanvas("canvas_graph", "", 1000, 1000);
     HitsZX->Draw("a");
@@ -240,5 +265,4 @@ void DrawHisto(UInt_t runId)
     HitsXY->Draw("a");
     canvas->SaveAs(Form("pictures/run%04d_tracks_si_XY.png", runId));
     canvas->Clear();
-
 }

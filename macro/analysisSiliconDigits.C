@@ -126,6 +126,8 @@ void Analyze()
 
 void DrawHisto(UInt_t runId)
 {
+    gSystem->Exec("mkdir -p pictures");
+
     for (auto const &keyHistPair : hOccupMap)
     {
         auto key = keyHistPair.first;
