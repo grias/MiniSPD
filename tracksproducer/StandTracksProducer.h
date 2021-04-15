@@ -27,7 +27,6 @@ struct HitWrapper
     TVector3 globalPosition;
 };
 
-
 struct TrackCandidate
 {
     vector<HitWrapper> hits;
@@ -49,9 +48,6 @@ public:
     void SetInputFileName(TString inputFileName) { fInputFileName = inputFileName; }
     void SetOutputFileName(TString outputFileName) { fOutputFileName = outputFileName; }
 
-    void Init();
-    void Finish();
-
     void ProduceTracksFromAllEvents();
     void ProduceTracksFromOneEvent(Int_t iEvent);
 
@@ -64,24 +60,23 @@ private:
     void GetInputData();
     void GetOutputData();
 
-    void ProduceTracksFromEvent(Int_t event);
+    void ProduceTracksFromCurrentEvent();
     void ProduceTracksFromEvents(Int_t startEvent, Int_t endEvent);
 
     void FindTrackCandidates(vector<TrackCandidate> &trackCandidates);
     void FitTracks(vector<TrackCandidate> &trackCandidates);
-    void FitTrack(TrackCandidate &trackCandidate);
-    void FindBestTrack(vector<TrackCandidate> &trackCandidates);
+    void FitTrack(TrackCandidate &trackCandidate, Int_t excludeStation = -1);
+    Int_t FindBestTrack(vector<TrackCandidate> &trackCandidates);
+    void RefitTrackExcludingStation(TrackCandidate &trackCandidate, Int_t excludedStation);
+    void WriteTrackIntoTree(TrackCandidate &trackCandidate);
 
-    /* data members */
     StandIOManager* fIOManager;
 
     TString fInputFileName;
     TString fOutputFileName;
 
-    /* Input arrays */
     TClonesArray* fSiliconHitsArray;
 
-    /* Output arrays */
     TClonesArray* fSiliconTracksArray;
 
     ClassDef(StandTracksProducer, 1)

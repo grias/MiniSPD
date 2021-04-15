@@ -35,7 +35,6 @@ void StandIOManager::InitOutput()
     CreateOutputBranches();
 
     fIsOutputInitialized = kTRUE;
-
 }
 
 void StandIOManager::Finish()
@@ -66,6 +65,8 @@ void StandIOManager::FinishInput()
 
 void StandIOManager::FinishOutput()
 {
+    WriteTreeIntoOutputFile();
+
     fOutputFileName = "";
     fOutputBranchesNames.clear();
     for (auto &&branchPair : fOutputDataMap)
@@ -84,11 +85,22 @@ void StandIOManager::FinishOutput()
     fIsOutputInitialized = kFALSE;
 }
 
+void StandIOManager::StartEvent(Int_t nEvent)
+{
+    ClearArrays();
+    ReadInputEvent(nEvent);
+}
+
+void StandIOManager::EndEvent()
+{
+    FillEvent();
+    ClearArrays();
+}
+
 void StandIOManager::ClearArrays()
 {
     for (auto &&branchPair : fOutputDataMap)
     {
-        // if (branchPair.second) delete branchPair.second;
         branchPair.second->Clear();
     }
 }
@@ -150,8 +162,6 @@ void StandIOManager::OpenInputBranches()
 {
     for (auto &&inputBranchPair : fInputBranchesNames)
     {
-        // auto branch = fInputTree->GetBranch(inputBranchPair.first);
-        // if (branch) branch->SetAutoDelete(kTRUE);
         auto clonesArray = new TClonesArray(inputBranchPair.second);
         fInputTree->SetBranchAddress(inputBranchPair.first, &clonesArray);
 
@@ -173,4 +183,3 @@ void StandIOManager::CreateOutputBranches()
         printf("-I-<StandIOManager::CreateOutputBranches> Output branch %s created\n", outputBranchPair.first.Data());
     }
 }
-

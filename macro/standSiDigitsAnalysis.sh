@@ -6,5 +6,5 @@ runsArray=(585 586 587 589 591 593 693 709 716 721 744 758 849 857 859 861 868 8
 makespd
 
 for run in ${runsArray[@]}; do
-  root -b -q "SiliconDigitsAnalysisHist.C($run)"
+  root -b -q "analysisSiliconDigits.C($run)"
 done

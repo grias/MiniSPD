@@ -21,33 +21,27 @@ StandTracksProducer::~StandTracksProducer()
 {
 }
 
-void StandTracksProducer::Init()
-{
-    cout << "-I-<StandTracksProducer::Init>" << endl;
-
-    OpenInputOutputFiles();
-}
-
-void StandTracksProducer::Finish()
-{
-    cout << "-I-<StandTracksProducer::Finish>" << endl;
-
-    CloseInputOutputFiles();
-}
-
 void StandTracksProducer::ProduceTracksFromAllEvents()
 {
     cout << "-I-<StandTracksProducer::ProduceTracksFromAllEvents>" << endl;
 
+    OpenInputOutputFiles();
+
     Long64_t nEvents = fIOManager->GetNumberOfInputEvents();
     ProduceTracksFromEvents(0, nEvents - 1);
+
+    CloseInputOutputFiles();
 }
 
 void StandTracksProducer::ProduceTracksFromOneEvent(Int_t event)
 {
     cout << "-I-<StandTracksProducer::ProduceTracksFromOneEvent>" << endl;
 
+    OpenInputOutputFiles();
+
     ProduceTracksFromEvents(event, event);
+
+    CloseInputOutputFiles();
 }
 
 void StandTracksProducer::ProduceTracksFromEvents(Int_t startEvent, Int_t endEvent)
@@ -73,32 +67,33 @@ void StandTracksProducer::ProduceTracksFromEvents(Int_t startEvent, Int_t endEve
 
     for (size_t iEvent = startEvent; iEvent <= endEvent; iEvent++)
     {
-        // cout<<"Event "<<iEvent<<endl;
-        ProduceTracksFromEvent(iEvent);
-    }
+        fIOManager->StartEvent(iEvent);
 
-    fIOManager->WriteTreeIntoOutputFile();
+        ProduceTracksFromCurrentEvent();
+
+        fIOManager->EndEvent();
+    }
 }
 
-void StandTracksProducer::ProduceTracksFromEvent(Int_t event)
+void StandTracksProducer::ProduceTracksFromCurrentEvent()
 {
-    // cout << "-I-<StandTracksProducer::ProduceTracksFromEvent> Processing event " << event << endl;
-
-    fIOManager->ClearArrays();
-    fIOManager->ReadInputEvent(event);
+    // cout << "-I-<StandTracksProducer::ProduceTracksFromCurrentEvent> Processing event " << event << endl;
 
     vector<TrackCandidate> trackCandidates;
 
     FindTrackCandidates(trackCandidates);
 
-    FitTracks(trackCandidates);
-    
     if (trackCandidates.size())
     {
-        FindBestTrack(trackCandidates);
-    }
+        FitTracks(trackCandidates);
 
-    fIOManager->FillEvent();
+        auto bestCandidate = trackCandidates[FindBestTrack(trackCandidates)];
+
+        Int_t stationToExclude = 1;
+        FitTrack(bestCandidate, stationToExclude);
+
+        WriteTrackIntoTree(bestCandidate);
+    }
 }
 
 void StandTracksProducer::FindTrackCandidates(vector<TrackCandidate> &trackCandidates)
@@ -106,7 +101,8 @@ void StandTracksProducer::FindTrackCandidates(vector<TrackCandidate> &trackCandi
     vector<HitWrapper> stationsHits[3] = {vector<HitWrapper>(), vector<HitWrapper>(), vector<HitWrapper>()};
 
     Int_t nHits = fSiliconHitsArray->GetEntriesFast();
-    if (nHits>50) return;
+    if (nHits > 50) return; // bad events
+    if (nHits > 3) return;
     
     // cout << "-I-<StandTracksProducer::FindTrackCandidates> Total silicon hits: " << nHits << endl;
 
@@ -121,9 +117,17 @@ void StandTracksProducer::FindTrackCandidates(vector<TrackCandidate> &trackCandi
 
         HitWrapper hit(iHit, station);
         hit.module = module;
-        
 
-        hit.globalPosition = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);
+        hit.globalPosition = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);        
+
+        Int_t isActiveModule[3][4] = 
+        {
+            {1, 1},
+            {1, 1, 1, 1},
+            {1, 1}
+        };
+
+        if (!isActiveModule[station][module]) continue;
         
         stationsHits[hit.station].push_back(hit);
     }
@@ -152,15 +156,18 @@ void StandTracksProducer::FitTracks(vector<TrackCandidate> &trackCandidates)
     }
 }
 
-void StandTracksProducer::FitTrack(TrackCandidate &trackCandidate)
+void StandTracksProducer::FitTrack(TrackCandidate &trackCandidate, Int_t excludeStation)
 {
     TLinearFitter linFitX(1);
     linFitX.SetFormula("pol1");
     TLinearFitter linFitY(1);
     linFitY.SetFormula("pol1");
 
-    for (auto &&hit : trackCandidate.hits)
+    for (size_t iStation = 0; iStation < 3; iStation++)
     {
+        if (iStation == excludeStation) continue;
+        auto hit = trackCandidate.hits[iStation];
+
         Double_t x = hit.globalPosition.X();
         Double_t y = hit.globalPosition.Y();
         Double_t z[1] = {hit.globalPosition.Z()};
@@ -168,6 +175,16 @@ void StandTracksProducer::FitTrack(TrackCandidate &trackCandidate)
         linFitX.AddPoint(z, x);
         linFitY.AddPoint(z, y);
     }
+
+    // for (auto &&hit : trackCandidate.hits)
+    // {
+    //     Double_t x = hit.globalPosition.X();
+    //     Double_t y = hit.globalPosition.Y();
+    //     Double_t z[1] = {hit.globalPosition.Z()};
+
+    //     linFitX.AddPoint(z, x);
+    //     linFitY.AddPoint(z, y);
+    // }
 
     linFitX.Eval();
     linFitY.Eval();
@@ -185,8 +202,11 @@ void StandTracksProducer::FitTrack(TrackCandidate &trackCandidate)
     trackCandidate.parsY[0] = paramsY(0);
     trackCandidate.parsY[1] = paramsY(1);
 
-    trackCandidate.chiSquare[0] = linFitX.GetChisquare();
-    trackCandidate.chiSquare[1] = linFitY.GetChisquare();
+    if (excludeStation == -1)
+    {
+        trackCandidate.chiSquare[0] = linFitX.GetChisquare();
+        trackCandidate.chiSquare[1] = linFitY.GetChisquare();
+    }
 
     for (auto &&hit : trackCandidate.hits)
     {
@@ -207,10 +227,15 @@ void StandTracksProducer::FitTrack(TrackCandidate &trackCandidate)
     }
 }
 
-void StandTracksProducer::FindBestTrack(vector<TrackCandidate> &trackCandidates)
+void StandTracksProducer::RefitTrackExcludingStation(TrackCandidate &trackCandidate, Int_t excludedStation)
+{
+    FitTrack(trackCandidate, excludedStation);
+}
+
+Int_t StandTracksProducer::FindBestTrack(vector<TrackCandidate> &trackCandidates)
 {
     Int_t nCandidates = trackCandidates.size();
-    Int_t nBest = 0;
+    Int_t nBest = -1;
     Double_t bestChiSquare = 999999999;
 
     for (size_t iCandidate = 0; iCandidate < nCandidates; iCandidate++)
@@ -226,26 +251,28 @@ void StandTracksProducer::FindBestTrack(vector<TrackCandidate> &trackCandidates)
             nBest = iCandidate;
         }
     }
-    TrackCandidate bestCandidate = trackCandidates[nBest];
+    
+    return nBest;
+}
 
+void StandTracksProducer::WriteTrackIntoTree(TrackCandidate &trackCandidate)
+{
     StandSiliconTrack* track = new((*fSiliconTracksArray)[fSiliconTracksArray->GetEntriesFast()]) StandSiliconTrack();
 
-    Double_t hitPosX[3] = {bestCandidate.hits[0].globalPosition.X(),bestCandidate.hits[1].globalPosition.X(),bestCandidate.hits[2].globalPosition.X()};
-    Double_t hitPosY[3] = {bestCandidate.hits[0].globalPosition.Y(),bestCandidate.hits[1].globalPosition.Y(),bestCandidate.hits[2].globalPosition.Y()};
-    Double_t hitPosZ[3] = {bestCandidate.hits[0].globalPosition.Z(),bestCandidate.hits[1].globalPosition.Z(),bestCandidate.hits[2].globalPosition.Z()};
+    Double_t hitPosX[3] = {trackCandidate.hits[0].globalPosition.X(),trackCandidate.hits[1].globalPosition.X(),trackCandidate.hits[2].globalPosition.X()};
+    Double_t hitPosY[3] = {trackCandidate.hits[0].globalPosition.Y(),trackCandidate.hits[1].globalPosition.Y(),trackCandidate.hits[2].globalPosition.Y()};
+    Double_t hitPosZ[3] = {trackCandidate.hits[0].globalPosition.Z(),trackCandidate.hits[1].globalPosition.Z(),trackCandidate.hits[2].globalPosition.Z()};
 
-    
-
-    track->SetHitId(bestCandidate.nHits);
+    track->SetHitId(trackCandidate.nHits);
     track->SetHitPositionX(hitPosX);
     track->SetHitPositionY(hitPosY);
     track->SetHitPositionZ(hitPosZ);
-    track->SetModules(bestCandidate.modules);
-    track->SetResidualsX(bestCandidate.residualsX);
-    track->SetResidualsY(bestCandidate.residualsY);
-    track->SetParsX(bestCandidate.parsX);
-    track->SetParsY(bestCandidate.parsY);
-    track->SetChiSquare(bestCandidate.chiSquare);
+    track->SetModules(trackCandidate.modules);
+    track->SetResidualsX(trackCandidate.residualsX);
+    track->SetResidualsY(trackCandidate.residualsY);
+    track->SetParsX(trackCandidate.parsX);
+    track->SetParsY(trackCandidate.parsY);
+    track->SetChiSquare(trackCandidate.chiSquare);
 }
 
 void StandTracksProducer::OpenInputOutputFiles()

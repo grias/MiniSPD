@@ -12,8 +12,6 @@
 
 const TString kINPUTTREENAME = "cbmsim";
 
-class BmnEventHeader;
-
 class StandHitsProducer : public TObject
 {
 public:
@@ -23,17 +21,10 @@ public:
     void SetInputFileName(TString inputFileName) { fInputFileName = inputFileName; }
     void SetOutputFileName(TString outputFileName) { fOutputFileName = outputFileName; }
 
-    void Init();
-    void Finish();
-    
-    
-
     void ProduceHitsFromAllEvents();
     void ProduceHitsFromOneEvent(Int_t iEvent);
 
-
 private:
-
     void OpenInputOutputFiles();
     void CloseInputOutputFiles();
     void ConfigureInput();
@@ -42,35 +33,27 @@ private:
     void GetInputData();
     void GetOutputData();
 
-    void ProduceHitsFromEvent(Int_t event);
+    void ProduceHitsFromCurrentEvent();
     void ProduceHitsFromEvents(Int_t startEvent, Int_t endEvent);
 
     void ProcessSiliconDigitsIntoClusters(StandClustersContainer &clustersContainer);
-    StandSiliconCluster* ProcessSiliconDigitIntoCluster(BmnSiliconDigit* siliconDigit);
+    StandSiliconCluster* CreateSiliconCluster(BmnSiliconDigit* siliconDigit);
     void CalculateLocalCoordinates(StandClustersContainer &clustersContainer);
     void CalculateLocalCoordinate(StandSiliconCluster* siliconCluster);
     void ProcessSiliconClustersIntoHits(StandClustersContainer &clustersContainer);
     void ProcessSiliconClustersIntoHit(StandSiliconCluster* clusterX, StandSiliconCluster* clusterY);
-
-
-    /* data memebers */
 
     StandIOManager* fIOManager;
 
     TString fInputFileName;
     TString fOutputFileName;
 
-    /* Input arrays */
     TClonesArray* fInputEventHeader;
     TClonesArray* fSiliconDigitsArray;
     TClonesArray* fStrawDigitsArray;
 
-    /* Output arrays */
     TClonesArray* fOutputEventHeader;
-    TClonesArray* fSiliconHitsArray;
-
-
-
+    TClonesArray* fSiliconHitsArray; 
 
     ClassDef(StandHitsProducer, 1)
 };

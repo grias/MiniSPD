@@ -16,15 +16,17 @@ link_directories( ${LINK_DIRECTORIES})
 set(SRCS
     StandIOManager.cxx
     StandSiliconGeoMapper.cxx
+    StandReverseSiliconGeoMapper.cxx
 )
 
 set(HEADERS
     StandIOManager.h
     StandSiliconGeoMapper.h
+    StandReverseSiliconGeoMapper.h
 )
 
 Set(LINKDEF StandCommonLinkDef.h)
 Set(LIBRARY_NAME StandCommon)
-Set(DEPENDENCIES Physics)
+Set(DEPENDENCIES Physics RIO Tree)
 
 GENERATE_LIBRARY()
