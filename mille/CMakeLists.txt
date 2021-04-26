@@ -1,0 +1,28 @@
+set(INCLUDE_DIRECTORIES
+${ROOT_INCLUDE_DIR} 
+${BASE_INCLUDE_DIRECTORIES}
+${CMAKE_SOURCE_DIR}/mille
+)
+
+include_directories( ${INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
+
+set(LINK_DIRECTORIES
+${ROOT_LIBRARY_DIR}
+) 
+
+link_directories( ${LINK_DIRECTORIES})
+
+set(SRCS
+    Mille.cc
+)
+
+set(HEADERS
+    Mille.h
+)
+
+Set(LINKDEF MilleLinkDef.h)
+Set(LIBRARY_NAME Mille)
+# Set(DEPENDENCIES )
+
+GENERATE_LIBRARY()
