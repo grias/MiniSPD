@@ -13,29 +13,22 @@ project(SPDROOT)
 #set(CMAKE_VERBOSE_MAKEFILE true)
 include(CMakeParseArguments)
 
-cmake_policy(SET CMP0010 OLD)
-
 # Check for needed environment variables
-IF(NOT DEFINED ENV{FAIRROOTPATH})
-  MESSAGE(FATAL_ERROR "You did not define the environment variable FAIRROOTPATH which is needed to find FairRoot. Please set this variable and execute cmake again.")
-ENDIF(NOT DEFINED ENV{FAIRROOTPATH})
 
-IF(NOT DEFINED ENV{SIMPATH})
-  MESSAGE(FATAL_ERROR "You did not define the environment variable SIMPATH which is nedded to find the external packages. Please set this variable and execute cmake again.") 
-ENDIF(NOT DEFINED ENV{SIMPATH})
+# IF(NOT DEFINED ENV{SIMPATH})
+#   MESSAGE(FATAL_ERROR "You did not define the environment variable SIMPATH which is nedded to find the external packages. Please set this variable and execute cmake again.") 
+# ENDIF(NOT DEFINED ENV{SIMPATH})
 
-SET(SIMPATH $ENV{SIMPATH})
-SET(FAIRROOTPATH $ENV{FAIRROOTPATH})
+SET(SIMPATH $ENV{ROOTSYS})
+SET(FAIRROOTPATH ${CMAKE_SOURCE_DIR})
 
 # where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ 
 # is checked
-#set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules"  ${CMAKE_MODULE_PATH})
-set(CMAKE_MODULE_PATH "${FAIRROOTPATH}/share/fairbase/cmake/modules"  ${CMAKE_MODULE_PATH})
-set(CMAKE_MODULE_PATH "${FAIRROOTPATH}/share/fairbase/cmake/modules_old"  ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules"  ${CMAKE_MODULE_PATH})
 
-Set(CheckSrcDir "${FAIRROOTPATH}/share/fairbase/cmake/checks")
+Set(CheckSrcDir "${FAIRROOTPATH}/cmake/checks")
 
-find_package(FairRoot)
+# find_package(FairRoot)
 
 # Load some basic macros which are needed later on
 include(FairMacros)
@@ -72,9 +65,9 @@ CHECK_OUT_OF_SOURCE_BUILD()
 
 # Check if we are on an UNIX system. If not stop with an error
 # message
-IF(NOT UNIX)
-  MESSAGE(FATAL_ERROR "You're not on an UNIX system. The project was up to now only tested on UNIX systems, so we break here. If you want to go on please edit the CMakeLists.txt in the source directory.")
-ENDIF(NOT UNIX)  
+# IF(NOT UNIX)
+#   MESSAGE(FATAL_ERROR "You're not on an UNIX system. The project was up to now only tested on UNIX systems, so we break here. If you want to go on please edit the CMakeLists.txt in the source directory.")
+# ENDIF(NOT UNIX)  
 
 # Check if the external packages are installed into a separate install
 # directory
