@@ -7,7 +7,7 @@ This repository contains software project devoted to the [SPD](http://spd.jinr.r
  experiment at the [NICA](http://nica.jinr.ru) collider. 
 
 # Installation
-Refer to the spdroot git repo [installation guide](https://git.jinr.ru/nica/spdroot/-/wikis/Installation-Guide).
+You can find installation guide in doc/minispd_install.txt.
 
 # Running
 
