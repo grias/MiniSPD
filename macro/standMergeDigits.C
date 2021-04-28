@@ -1,14 +1,15 @@
 
-void standMergeDigits()
+void standMergeDigits(int outRunId)
 {
     // vector<Int_t> runsToMerge = {780, 802, 803, 811, 816, 817, 818, 829, 831, 832, 838, 840, 842, 843, 844, 848, 851}; // old
     // vector<Int_t> runsToMerge = {585, 586, 587, 589, 591, 593, 693, 709, 716, 721, 744, 758, 849, 857, 859, 861, 868, 869, 871, 916, 957, 966, 967}; // new
     // vector<Int_t> runsToMerge = {693, 709, 716, 721, 744, 758, 849, 857, 859, 861, 868, 869, 871, 916, 957, 966, 967}; // new without noisy events
 
-    vector<Int_t> runsToMerge = {780, 802, 803, 811, 816, 817, 818, 829, 831, 832, 838, 840, 842, 843, 844, 848, 851, 693, 709, 716, 721, 744, 758, 849, 857, 859, 861, 868, 869, 871, 916, 957, 966, 967}; // mix
+    vector<Int_t> runsToMerge = {780, 802, 803, 811, 816, 817, 818, 829, 831, 832, 838, 840, 842, 843, 844, 848, 851, 693, 709, 716, 721, 744, 758, 849, 857, 859, 861, 868, 869, 871, 916, 957, 966, 967}; // old + new - newNoisy
 
     auto ioman = new StandIOManager();
-    ioman->SetOutputFileName("data/stand_run0001_digits.root");
+    TString outFileName = Form("data/stand_run%04d_digits.root", outRunId);
+    ioman->SetOutputFileName(outFileName);
     ioman->RegisterOutputBranch("SILICON", "BmnSiliconDigit");
     ioman->RegisterOutputBranch("DCH", "BmnDchDigit");
     ioman->InitOutput();
@@ -39,7 +40,6 @@ void standMergeDigits()
     for (Int_t iEv = 0; iEv < nEvents; iEv++)
     {
         // printf("\nEvent %d\n", iEv);
-        ioman->ClearArrays();
         inChain->GetEntry(iEv);
 
         // Si digits
@@ -59,7 +59,7 @@ void standMergeDigits()
         }
         // printf("Dch Digits: %lld\n", outDchDigits->GetEntriesFast());
 
-        ioman->FillEvent();
+        ioman->EndEvent();
     } // end of event
 
     ioman->FinishOutput();

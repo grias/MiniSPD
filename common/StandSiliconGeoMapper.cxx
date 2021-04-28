@@ -24,17 +24,24 @@ Double_t StandSiliconGeoMapper::fSiModuleWidthY[3] = {126., 63., 126.}; /* mm */
 
 Double_t StandSiliconGeoMapper::fModuleCSToStationCS[3][4][3] = 
 {
-    {{60., 0., -15.3},{0., 0., 0}},
-    {{60., -5., 7.3},{0., 0., 0},{55., -65., 0},{-5., -60., 7.3}},
-    {{60. /* *** */, -5., 7.3}}
-}; /* mm */ /* "*"" may be wrong! */
+    {{60., 0.,-15.3}, {0., 0., 0}},
+    {{60., -5., 7.3}, {0., 0., 0}, {55., -65., 0}, {-5., -60., 7.3}},
+    {{60., -5., 7.3}, {0., 0., 0}}
+}; /* mm */
 
 Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] = 
 {
     {{0, 0, 0},{-0.049, 0, 0}},
-    {{-0.14, 0, 0},{-0.17, 0, 0},{-0.064, 0, 0},{-0.14, 0, 0}},
+    {{-0.143, 0, 0},{-0.149, 0, 0},{-0.077, 0, 0},{-0.137, 0, 0}},
     {{0, 0, 0},{+0.3, 0, 0}}
 }; /* mm */
+
+// Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] = 
+// {
+//     {{0, 0, 0},{-0.149, 0, 0}},
+//     {{-0.143, 0, 0},{-0.249, 0, 0},{-0.077, 0, 0},{-0.237, 0, 0}},
+//     {{0, 0, 0},{+0.2, 0, 0}}
+// }; /* mm */
 
 Double_t StandSiliconGeoMapper::fModuleRotationCorrection[3][4][3] = 
 {

@@ -1059,28 +1059,47 @@ BmnStatus BmnRawDataDecoder::InitMaps() {
     string dummy;
     UInt_t ser = 0;
     UInt_t station = 0;
-    array<UInt_t, 3> serials {0, 0, 0}; // bad decision [KOSTYL]
+    
+    // gem
     TString name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fGemMapFileName;
+    ifstream inFileGem(name.Data());
+    if (!inFileGem.is_open())
+        cout << "Error opening map-file (" << name << ")!" << endl;
+    for (Int_t i = 0; i < 3; ++i) getline(inFileGem, dummy); //comment lines in input file
 
-    // serials.clear();
+    array<UInt_t, 2> serialsGem {0, 0}; // bad decision [KOSTYL]
+    while (!inFileGem.eof()) {
+        inFileGem >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> station >> dummy;
+        if (!inFileGem.good()) break;
+        serialsGem[station] = ser;
+    }
+    for (auto s : serialsGem) fGemSerials.push_back(s);
+    fNGemSerials = fGemSerials.size();
+
+    // for (Int_t iSer = 0; iSer < fNGemSerials; ++iSer) 
+    // {
+    //     printf("<BmnRawDataDecoder::InitMaps> GEM iStation: %d, serial: %d\n", iSer, fGemSerials[iSer]);
+    // } 
+
+    // silicon
     name = TString(getenv("VMCWORKDIR")) + TString("/input/") + fSiliconMapFileName;
     ifstream inFileSil(name.Data());
     if (!inFileSil.is_open())
         cout << "Error opening map-file (" << name << ")!" << endl;
     for (Int_t i = 0; i < 4; ++i) getline(inFileSil, dummy); //comment line in input file
 
+    array<UInt_t, 3> serialsSil {0, 0, 0}; // bad decision [KOSTYL]
     while (!inFileSil.eof()) {
         inFileSil >> std::hex >> ser >> std::dec >> dummy >> dummy >> dummy >> dummy >> dummy >> station;
         if (!inFileSil.good()) break;
-        serials[station] = ser;
-
+        serialsSil[station] = ser;
     }
-    for (auto s : serials) fSiliconSerials.push_back(s);
+    for (auto s : serialsSil) fSiliconSerials.push_back(s);
     fNSiliconSerials = fSiliconSerials.size();
     
     // for (Int_t iSer = 0; iSer < fNSiliconSerials; ++iSer) 
     // {
-    //     printf("<BmnRawDataDecoder::InitMaps> iStation: %d, serial: %d\n", iSer, fSiliconSerials[iSer]);
+    //     printf("<BmnRawDataDecoder::InitMaps> SILICON iStation: %d, serial: %d\n", iSer, fSiliconSerials[iSer]);
     // }    
 }
 
