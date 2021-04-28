@@ -15,9 +15,9 @@ include(CMakeParseArguments)
 
 # Check for needed environment variables
 
-# IF(NOT DEFINED ENV{SIMPATH})
-#   MESSAGE(FATAL_ERROR "You did not define the environment variable SIMPATH which is nedded to find the external packages. Please set this variable and execute cmake again.") 
-# ENDIF(NOT DEFINED ENV{SIMPATH})
+IF(NOT DEFINED ENV{ROOTSYS})
+  MESSAGE(FATAL_ERROR "You did not define the environment variable ROOTSYS which is nedded to find the external packages. Please set this variable and execute cmake again.") 
+ENDIF(NOT DEFINED ENV{ROOTSYS})
 
 SET(SIMPATH $ENV{ROOTSYS})
 SET(FAIRROOTPATH ${CMAKE_SOURCE_DIR})
@@ -120,5 +120,6 @@ add_subdirectory (hitproducer)
 add_subdirectory (tracksproducer)
 add_subdirectory (executables)
 add_subdirectory (mille)
+add_subdirectory (TMillepede)
 
 WRITE_CONFIG_FILE(config.sh)
