@@ -5,13 +5,11 @@
 #include "StandSiliconGeoMapper.h"
 
 #include <iostream>
-#include <map>
 #include <vector>
 
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::map;
 using std::vector;
 
 StandHitsProducer::StandHitsProducer()

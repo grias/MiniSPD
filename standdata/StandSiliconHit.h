@@ -3,7 +3,6 @@
 
 #include <TObject.h>
 
-
 class StandSiliconHit : public TObject
 {
 public:
@@ -24,7 +23,6 @@ public:
     Int_t GetClusterSizeX() { return fClusterX; }
     Int_t GetClusterSizeY() { return fClusterY; }
 
-
     void SetLocalCoordinates(Double_t localX, Double_t localY) { fLocalX = localX; fLocalX = localY; }
     void SetAmplitudes(Double_t amplitudeX, Double_t amplitudeY) { fAmplitudeX = amplitudeX; fAmplitudeY = amplitudeY; }
     void SetClustersSizes(Int_t clusterSizeX, Int_t clusterSizeY) { fClusterX = clusterSizeX; fClusterY = clusterSizeY; }
@@ -35,7 +33,6 @@ public:
     void Print();
 
 private:
-
     Int_t fStation = -1;
     Int_t fModule = -1;
 
@@ -44,7 +41,6 @@ private:
 
     Double_t fAmplitudeX = 0.;
     Double_t fAmplitudeY = 0.;
-    
 
     Double_t fLocalX = 0.;
     Double_t fLocalY = 0.;

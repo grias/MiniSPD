@@ -1,13 +1,17 @@
-# MiniSPD stand
-THIS PROJECT WAS A PART OF SPDROOT ONCE. OCCASIONALLY YOU CAN FIND ITS REMAINS HERE AND THERE
+# MiniSPD
+Minispd is a sofware dedicated to MiniSPD stand data reconstruction.
 
-# SPD software
-
-This repository contains software project devoted to the [SPD](http://spd.jinr.ru/doku.php)
- experiment at the [NICA](http://nica.jinr.ru) collider. 
+The project was tested on fresh installed Linux Mint 20.1 with ROOT 6.24.
 
 # Installation
-You can find installation guide in doc/minispd_install.txt.
+
+   1. Install packages from [ROOT Dependencies](https://root.cern/install/dependencies/);
+   2. Install CERN ROOT package using [this guide](https://root.cern/install/#build-from-source), don't forget to set ROOTSYS environment variable;
+   3. Create build directory;
+   4. Generate makefile using _cmake <./path/to/sourceDir/>_;
+   5. compile minispd using _make_ command;
+   6. Run _. config.sh_;
+   7. Try using testPipeline.sh script in macro directory.
 
 # Running
 
@@ -22,7 +26,6 @@ Root macros are located in macro/ directory:
    8. analysisAlignment.C -- read silicon tracks and build some histograms related to alignment process (saved at macro/pictures)
    9. createMockDigits.C -- create mock digits from genereted straight tracks
    10. standMergeDigits.C -- merge selected root-files with digits into one
-
 
 # Documentation
 

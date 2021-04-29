@@ -164,58 +164,10 @@ BmnStatus BmnSiliconRaw2Digit::FillNoisyChannels() {
         noisymap.push_back(record);
     }
 
-    // fNoisyChannels[0][1][1][415]=kTRUE; //this is KOSTYL
-    // for (Int_t iSt = 0; iSt < kNStations; ++iSt)
-    //     for (UInt_t iMod = 0; iMod < kNModules; ++iMod)
-    //         for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
-    //             TH1F* prof = fSigProf[iSt][iMod][iLay];
-    //             for (Int_t iBunch = 0; iBunch < kNBunches; ++iBunch) {
-    //                 Double_t meanDiff = 0.0;
-    //                 for (Int_t iStrip = 0; iStrip < kNStripsInBunch - 1; ++iStrip) {
-    //                     Int_t strip = iStrip + iBunch * kNStripsInBunch;
-    //                     Double_t curr = prof->GetBinContent(strip);
-    //                     Double_t next = prof->GetBinContent(strip + 1);
-    //                     meanDiff += Abs(next - curr);
-    //                 }
-    //                 meanDiff /= kNStripsInBunch;
-    //                 for (Int_t iStrip = 0; iStrip < kNStripsInBunch - 1; ++iStrip) {
-    //                     Int_t strip = iStrip + iBunch * kNStripsInBunch;
-    //                     for (auto it : noisymap)
-    //                     {
-    //                         if (iSt==it.station && iMod==it.module && iLay==it.layer && strip==it.strip)
-    //                         fNoisyChannels[iSt][iMod][iLay][strip] = kTRUE;
-    //                     }
-    //                     Double_t curr = prof->GetBinContent(strip);
-    //                     Double_t next = prof->GetBinContent(strip + 1);
-    //                     if (kNThresh * meanDiff < next - curr)
-    //                         fNoisyChannels[iSt][iMod][iLay][strip] = kTRUE;
-    //                 }
-    //             }
-    //         }
-
-    // for (Int_t iSt = 0; iSt < kNStations; ++iSt) {
-    //     for (UInt_t iMod = 0; iMod < kNModules; ++iMod) {
-    //         for (Int_t iLay = 0; iLay < kNLayers; ++iLay) {
-    //             for (Int_t iStrip = 0; iStrip < kNStrips; ++iStrip)
-    //             {
-    //                 if (fNoisyChannels[iSt][iMod][iLay][iStrip])
-    //                 {
-    //                     printf("\t%d\t%d\t%d\t%d\n", iSt, iMod, iLay, iStrip);
-    //                 }
-                    
-    //             }
-
-                    
-    //         }
-    //     }
-    // }
-
     for (auto it : noisymap)
     {
         fNoisyChannels[it.station][it.module][it.layer][it.strip] = kTRUE;
     }
-
-
 }
 
 void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* silM, TClonesArray *silicon, Bool_t doFill, Int_t iEv) {
@@ -272,7 +224,9 @@ void BmnSiliconRaw2Digit::ProcessDigit(BmnADCDigit* adcDig, BmnSiliconMapping* s
         Double_t pedRms = vPedRMS[candStation][ch][iSmpl];
         Double_t sig = dig->GetStripSignal() - ped - CMS;
         Double_t noiseLvl = vNoiseLvl[candStation][ch][iSmpl];
-        Double_t threshold = 6*noiseLvl;
+        // Double_t threshold = 6*noiseLvl - CMS;
+        // Double_t threshold = 6*noiseLvl;
+        Double_t threshold = 3*noiseLvl;
 
         if ( Abs(sig) < baseTresholds[candStation] || (dig->GetStripLayer() == 0 && sig < threshold) || (dig->GetStripLayer() == 1 && sig > -threshold) )
         {

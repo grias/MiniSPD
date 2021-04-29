@@ -89,8 +89,8 @@ void StandTracksProducer::ProduceTracksFromCurrentEvent()
 
         auto bestCandidate = trackCandidates[FindBestTrack(trackCandidates)];
 
-        Int_t stationToExclude = 1;
-        FitTrack(bestCandidate, stationToExclude);
+        // Int_t stationToExclude = 1;
+        // FitTrack(bestCandidate, stationToExclude);
 
         WriteTrackIntoTree(bestCandidate);
     }
@@ -102,7 +102,7 @@ void StandTracksProducer::FindTrackCandidates(vector<TrackCandidate> &trackCandi
 
     Int_t nHits = fSiliconHitsArray->GetEntriesFast();
     if (nHits > 50) return; // bad events
-    if (nHits > 3) return;
+    // if (nHits > 3) return;
     
     // cout << "-I-<StandTracksProducer::FindTrackCandidates> Total silicon hits: " << nHits << endl;
 
@@ -115,7 +115,7 @@ void StandTracksProducer::FindTrackCandidates(vector<TrackCandidate> &trackCandi
         Double_t localX = localSiliconHit->GetLocalX();
         Double_t localY = localSiliconHit->GetLocalY();
 
-        HitWrapper hit(iHit, station);
+        HitWrapper hit(iHit, station); 
         hit.module = module;
 
         hit.globalPosition = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);        
@@ -158,10 +158,8 @@ void StandTracksProducer::FitTracks(vector<TrackCandidate> &trackCandidates)
 
 void StandTracksProducer::FitTrack(TrackCandidate &trackCandidate, Int_t excludeStation)
 {
-    TLinearFitter linFitX(1);
-    linFitX.SetFormula("pol1");
-    TLinearFitter linFitY(1);
-    linFitY.SetFormula("pol1");
+    TLinearFitter linFitX(1, "pol1");
+    TLinearFitter linFitY(1, "pol1");
 
     for (size_t iStation = 0; iStation < 3; iStation++)
     {
