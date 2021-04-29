@@ -1,7 +1,0 @@
-1) Install packages from minispd_dependencies.txt file.
-2) Make sure you have CERN ROOT package installed (and ROOTSYS environment variable set).
-3) Create bild directory.
-4) Generate makefile using cmake <path/to/sourceDir/>.
-5) compile minispd using make command.
-6) Run config.sh 
-7) Try using testPipeline.sh script in macro directory
