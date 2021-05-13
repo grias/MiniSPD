@@ -35,7 +35,6 @@ public:
 
     BmnStatus RecalculatePedestals();
     BmnStatus RecalculatePedestalsX();
-    void ReadPedestalsFromFile();
     Double_t CalcCMS(Double_t* samples, Int_t size);
     Double_t CalcCMS(Int_t iCr, Int_t iCh, Int_t iEv);
     Double_t CalcCMS(Int_t iCr, Int_t iCh, vector<Double_t> vSamples);
