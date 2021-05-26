@@ -1,17 +1,18 @@
 #include "BmnDchRaw2Digit.h"
 
-
-
 #include <iostream>
-#include<array>
+#include <fstream>
+#include <array>
+#include <map>
 
 BmnDchRaw2Digit::BmnDchRaw2Digit(Int_t period, Int_t run)
 {
-    ReadMapFromFile(run);
+    ReadMapFromFile(period);
 }
 
 BmnDchRaw2Digit::BmnDchRaw2Digit()
 {
+    fNMapEntries = 0;
     fMap = NULL;
 }
 
@@ -22,48 +23,44 @@ BmnDchRaw2Digit::~BmnDchRaw2Digit()
 
 BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period)
 {
-    fMap = new DchMapStructure[N_MAP_ENTRIES];
     TString fileName = Form("Straw_map_Run%d.txt", 780);
     TString path = TString(getenv("VMCWORKDIR")) + "/input/" + fileName;
 
-    TString dummy;  
+    string dummy;  
     UInt_t ser = 0;
     Int_t ch_l = 0;
     Int_t ch_h = 0;
     Int_t slot = 0;
-    Int_t group = 0;
-    TString name;
-
-    TString planes[2];
-    planes[0] = "BOT_OLD";
-    planes[1] = "TOP_NEW";
+    Int_t id = 0;
 
     ifstream inFile(path.Data());
     if (!inFile.is_open())
         cout << "<DCH> Error opening map-file (" << path << ")!" << endl;
-    inFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-    inFile >> dummy;
+    getline(inFile, dummy); //comment line in input file
+    getline(inFile, dummy); //comment line in input file
 
-    Int_t iMod = 0;
+    std::vector<DchMapStructure> maps;
     while (!inFile.eof())
     {
-        inFile >> name >> group >> std::hex >> ser >> std::dec >> slot >> ch_l >> ch_h;
+        inFile >> dummy >> id >> std::hex >> ser >> std::dec >> slot >> ch_l >> ch_h;
         if (!inFile.good()) break;
-        
-        Int_t planeId;
-        for (Int_t iPlane = 0; iPlane < 2; ++iPlane)
-        {
-            if (name != planes[iPlane]) continue;
-            planeId = iPlane;
-        }
+        DchMapStructure mapItem;
 
-        fMap[iMod].plane = planeId;
-        fMap[iMod].group = group;
-        fMap[iMod].crate = ser;
-        fMap[iMod].slot = slot;
-        fMap[iMod].channel_low = ch_l;
-        fMap[iMod].channel_high = ch_h;
-        iMod++;
+        mapItem.plane = id;
+        mapItem.crate = ser;
+        mapItem.slot = slot;
+        mapItem.channel_low = ch_l;
+        mapItem.channel_high = ch_h;
+
+        maps.push_back(mapItem);
+    }
+
+    fNMapEntries = maps.size();
+    fMap = new DchMapStructure[fNMapEntries];
+
+    for (auto &&mapItem : maps)
+    {
+        fMap[mapItem.plane] = mapItem;
     }
      
     return kBMNSUCCESS;
@@ -87,10 +84,10 @@ void BmnDchRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *tqdc_tdc, TClon
 
         if (tdcDigit->GetType() != DCH_TDC_TYPE) continue;
 
-        if ((val_tqdc[2]+val_tqdc[3])*0.5 < 300) 
+        if ((val_tqdc[2]+val_tqdc[3])*0.5 < 300) // what is this ???
         {
             printf("<BmnDchRaw2Digit::FillEvent> val_tqdc[2]+val_tqdc[3])*0.5 < 300\n");
-            break; // what is this ???
+            break;
         }
         FindInMap(tdcDigit, time_scint, dch);
     }
@@ -111,7 +108,7 @@ BmnStatus BmnDchRaw2Digit::FindInMap(BmnTDCDigit* dig, Double_t time_scint, TClo
 {
     Int_t lattency_tqdc = 280;
 
-    for (Int_t iMap = 0; iMap < N_MAP_ENTRIES; ++iMap)
+    for (Int_t iMap = 0; iMap < fNMapEntries; ++iMap)
     {
         DchMapStructure map = fMap[iMap];
         if (dig->GetSlot() != map.slot) continue;
@@ -123,7 +120,8 @@ BmnStatus BmnDchRaw2Digit::FindInMap(BmnTDCDigit* dig, Double_t time_scint, TClo
         if (ch > map.channel_high || ch < map.channel_low) continue;
         Double_t tm = dig->GetValue()/10 - time_scint - lattency_tqdc; //divide by 10 for conversion (100 ps -> ns)
         if (tm < 0) continue;
-        new((*arr)[arr->GetEntriesFast()]) BmnDchDigit(map.plane, ch, tm, 0);
+        
+        new ((*arr)[arr->GetEntriesFast()]) BmnDchDigit(map.plane, ch, tm, 0);
 
         return kBMNSUCCESS;
     }

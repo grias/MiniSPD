@@ -9,12 +9,18 @@
 #include "BmnTQDCADCDigit.h"
 #include <cstdlib>
 
-#include "db_structures.h"
-
 #define DCH_TDC_TYPE (0x10) //TDC64V
 
 #define N_TRIGGER_CHANNELS    5
-#define N_MAP_ENTRIES         2
+
+struct DchMapStructure
+{
+    int plane;
+    unsigned int crate;
+    int slot;
+    int channel_low;
+    int channel_high;
+};
 
 class BmnDchRaw2Digit
 {
@@ -26,6 +32,7 @@ public:
     void FillEvent(TClonesArray *tdc, TClonesArray *tqdc_tdc, TClonesArray *dch);
 
 private:
+    size_t fNMapEntries;
     DchMapStructure* fMap;
 
     Int_t GetChTDC64v(UInt_t tdc, UInt_t ch);
