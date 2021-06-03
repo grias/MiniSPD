@@ -1,5 +1,5 @@
 
-void standMergeDigits(int outRunId)
+void mergeDigitFiles(int outRunId)
 {
     // vector<Int_t> runsToMerge = {780, 802, 803, 811, 816, 817, 818, 829, 831, 832, 838, 840, 842, 843, 844, 848, 851}; // old
     // vector<Int_t> runsToMerge = {585, 586, 587, 589, 591, 593, 693, 709, 716, 721, 744, 758, 849, 857, 859, 861, 868, 869, 871, 916, 957, 966, 967}; // new
@@ -11,11 +11,13 @@ void standMergeDigits(int outRunId)
     TString outFileName = Form("data/stand_run%04d_digits.root", outRunId);
     ioman->SetOutputFileName(outFileName);
     ioman->RegisterOutputBranch("SILICON", "BmnSiliconDigit");
+    ioman->RegisterOutputBranch("GEM", "BmnGemStripDigit");
     ioman->RegisterOutputBranch("DCH", "BmnDchDigit");
     ioman->InitOutput();
 
-    auto outSiDigits = ioman->GetOutputDataArray("BmnSiliconDigit");
-    auto outDchDigits = ioman->GetOutputDataArray("BmnDchDigit"); 
+    auto outSiDigits = ioman->GetOutputDataArray("SILICON");
+    auto outGemDigits = ioman->GetOutputDataArray("GEM");
+    auto outDchDigits = ioman->GetOutputDataArray("DCH"); 
 
     auto inChain = new TChain("cbmsim");
     for (auto &&runId : runsToMerge)
@@ -27,6 +29,13 @@ void standMergeDigits(int outRunId)
     TClonesArray *inSiDigits = 0;
     inChain->SetBranchAddress("SILICON", &inSiDigits);
     BmnSiliconDigit *inSiDigit;
+
+    auto branchGem = inChain->GetBranch("GEM");
+    if (!branchGem) return;
+    branchGem->SetAutoDelete(kTRUE);
+    TClonesArray *inGemDigits = 0;
+    inChain->SetBranchAddress("GEM", &inGemDigits);
+    BmnGemStripDigit *inGemDigit;
 
     auto branchDch = inChain->GetBranch("DCH");
     if (!branchDch) return;
@@ -49,15 +58,21 @@ void standMergeDigits(int outRunId)
             if (!inSiDigit->IsGoodDigit()) continue;
             new((*outSiDigits)[outSiDigits->GetEntriesFast()]) BmnSiliconDigit(inSiDigit);
         }
-        // printf("Si Digits: %lld\n", outSiDigits->GetEntriesFast());
 
-        // DCH digits
+        // Gem digits
+        for (size_t iDigit = 0; iDigit < inGemDigits->GetEntriesFast(); iDigit++)
+        {
+            inGemDigit = (BmnGemStripDigit *)inGemDigits->At(iDigit);
+            if (!inGemDigit->IsGoodDigit()) continue;
+            new((*outGemDigits)[outGemDigits->GetEntriesFast()]) BmnGemStripDigit(inGemDigit);
+        }
+
+        // Straw digits
         for (size_t iDigit = 0; iDigit < inDchDigits->GetEntriesFast(); iDigit++)
         {
             inDchDigit = (BmnDchDigit *)inDchDigits->At(iDigit);
             new((*outDchDigits)[outDchDigits->GetEntriesFast()]) BmnDchDigit(inDchDigit);
         }
-        // printf("Dch Digits: %lld\n", outDchDigits->GetEntriesFast());
 
         ioman->EndEvent();
     } // end of event

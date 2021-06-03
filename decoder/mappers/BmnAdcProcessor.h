@@ -35,7 +35,6 @@ public:
 
     BmnStatus RecalculatePedestals();
     BmnStatus RecalculatePedestalsX();
-    void ReadPedestalsFromFile();
     Double_t CalcCMS(Double_t* samples, Int_t size);
     Double_t CalcCMS(Int_t iCr, Int_t iCh, Int_t iEv);
     Double_t CalcCMS(Int_t iCr, Int_t iCh, vector<Double_t> vSamples);
@@ -83,8 +82,13 @@ public:
         return fRun;
     }
 
+    // returns vector with random numbers. use GetSerialsPtr() instead
     vector<UInt_t> GetSerials() {
         return fSerials;
+    }
+
+    vector<UInt_t> *GetSerialsPtr() {
+        return &fSerials;
     }
 
     UInt_t GetBoundaryRun(UInt_t nSmpl) {
@@ -97,7 +101,6 @@ public:
 
 private:
     void ClearPedestals();
-    void WritePedFile();
 
     vector<UInt_t> fSerials; //list of serial id for ADC-detector
 

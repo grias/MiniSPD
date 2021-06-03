@@ -1,143 +1,131 @@
 #include "BmnDchRaw2Digit.h"
 
-BmnDchRaw2Digit::BmnDchRaw2Digit(Int_t period, Int_t run) {
-    //ReadMapFromDB(period, run);
-    ReadMapFromFile(run); // actually run, not period
+#include <iostream>
+#include <fstream>
+#include <array>
+#include <map>
+
+BmnDchRaw2Digit::BmnDchRaw2Digit(Int_t period, Int_t run)
+{
+    ReadMapFromFile(period);
 }
 
+BmnDchRaw2Digit::BmnDchRaw2Digit()
+{
+    fNMapEntries = 0;
+    fMap = NULL;
+}
 
-BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period) { // actually run, not period
-    // cout<<"DCH ReadMapFromFile"<<endl;
-    fEntriesInMap1 = 2;
+BmnDchRaw2Digit::~BmnDchRaw2Digit()
+{
+    if (fMap) delete[] fMap;
+}
 
-    fMap1 = new DchMapStructure[fEntriesInMap1];
-    // TString fileName = Form("Straw_map_Run%d.txt", period); // [CHANGED]
+BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period)
+{
     TString fileName = Form("Straw_map_Run%d.txt", 780);
     TString path = TString(getenv("VMCWORKDIR")) + "/input/" + fileName;
 
-    TString dummy;  
+    string dummy;  
     UInt_t ser = 0;
     Int_t ch_l = 0;
     Int_t ch_h = 0;
     Int_t slot = 0;
-    Int_t group = 0;
-    TString name;
-
-    TString planes[2];
-    planes[0] = "BOT_OLD";
-    planes[1] = "TOP_NEW";
+    Int_t id = 0;
 
     ifstream inFile(path.Data());
     if (!inFile.is_open())
         cout << "<DCH> Error opening map-file (" << path << ")!" << endl;
-    inFile >> dummy >> dummy >> dummy >> dummy >> dummy >> dummy;
-    inFile >> dummy;
-    Int_t iMod = 0;
-    while (!inFile.eof()) {
-        inFile >> name >> group >> std::hex >> ser >> std::dec >> slot >> ch_l >> ch_h;
+    getline(inFile, dummy); //comment line in input file
+    getline(inFile, dummy); //comment line in input file
+
+    std::vector<DchMapStructure> maps;
+    while (!inFile.eof())
+    {
+        inFile >> dummy >> id >> std::hex >> ser >> std::dec >> slot >> ch_l >> ch_h;
         if (!inFile.good()) break;
-        
-        printf("%s\t%d\t0x%x\t%d\t%d\t%d\n", name.Data(), group, ser, slot, ch_l, ch_h);
+        DchMapStructure mapItem;
 
-        Int_t planeId;
-        for (Int_t iPlane = 0; iPlane < 2; ++iPlane)
-        {
-            if (name != planes[iPlane]) continue;
-            planeId = iPlane;
-        }
+        mapItem.plane = id;
+        mapItem.crate = ser;
+        mapItem.slot = slot;
+        mapItem.channel_low = ch_l;
+        mapItem.channel_high = ch_h;
 
-        fMap1[iMod].plane = planeId;
-        fMap1[iMod].group = group;
-        fMap1[iMod].crate = ser;
-        fMap1[iMod].slot = slot;
-        fMap1[iMod].channel_low = ch_l;
-        fMap1[iMod].channel_high = ch_h;
-        iMod++;
-            
+        maps.push_back(mapItem);
     }
+
+    fNMapEntries = maps.size();
+    fMap = new DchMapStructure[fNMapEntries];
+
+    for (auto &&mapItem : maps)
+    {
+        fMap[mapItem.plane] = mapItem;
+    }
+     
+    return kBMNSUCCESS;
 }
 
-void BmnDchRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *tqdc_tdc, TClonesArray *dch) {
-    // cout<<"DCH FillEvent"<<endl;
-    BmnTDCDigit *tqdc_digit;
-    Int_t numbTQDC=0;
-    UInt_t val_tqdc0=0;
-    UInt_t val_tqdc1=0;
-    UInt_t val_tqdc2=0;
-    UInt_t val_tqdc3=0;
-    UInt_t tqdc_tstamp0=0;
-    UInt_t tqdc_tstamp1=0;
-    UInt_t tqdc_tstamp2=0;
-    UInt_t tqdc_tstamp3=0;
-    Double_t time_scint;
+void BmnDchRaw2Digit::FillEvent(TClonesArray *tdc, TClonesArray *tqdc_tdc, TClonesArray *dch)
+{
+    std::array<UInt_t, N_TRIGGER_CHANNELS> val_tqdc;
+
     for (Int_t iTqdc = 0; iTqdc < tqdc_tdc->GetEntriesFast(); ++iTqdc) 
     {
-        if (tqdc_tdc->GetEntriesFast()>5) break;
-        tqdc_digit = (BmnTDCDigit*) tqdc_tdc->At(iTqdc);
-        if (tqdc_digit->GetChannel()==0) {val_tqdc0=tqdc_digit->GetValue(); tqdc_tstamp0 = tqdc_digit->GetTimestamp(); }
-        if (tqdc_digit->GetChannel()==1) {val_tqdc1=tqdc_digit->GetValue(); tqdc_tstamp1 = tqdc_digit->GetTimestamp(); }
-        if (tqdc_digit->GetChannel()==2) {val_tqdc2=tqdc_digit->GetValue(); tqdc_tstamp2 = tqdc_digit->GetTimestamp(); }
-        if (tqdc_digit->GetChannel()==3) {val_tqdc3=tqdc_digit->GetValue(); tqdc_tstamp3 = tqdc_digit->GetTimestamp(); }
-        numbTQDC++;
+        auto tqdc_digit = (BmnTDCDigit*) tqdc_tdc->At(iTqdc);
+        val_tqdc[tqdc_digit->GetChannel()] = tqdc_digit->GetValue();
     }
-    // printf("<TQDC_TDC Timestamp> Ch0: %d, Ch1: %d, Ch2: %d, Ch3: %d\n", tqdc_tstamp0, tqdc_tstamp1, tqdc_tstamp2, tqdc_tstamp3);
-    // printf("<TQDC_TDC Value> Ch0: %x, Ch1: %x, Ch2: %x, Ch3: %x\n", val_tqdc0, val_tqdc1, val_tqdc2, val_tqdc3);
-    //cout<<"numbTQDC = "<< numbTQDC <<endl;
-    // time_scint=(val_tqdc2+val_tqdc3)*0.5;// - 25*(tqdc_tstamp2+tqdc_tstamp3)*0.5;
-    time_scint=(val_tqdc0 + val_tqdc1 + val_tqdc2 + val_tqdc3)*0.25;// - 25*(tqdc_tstamp2+tqdc_tstamp3)*0.5; [CHANGED]
-    time_scint=25*time_scint/1000;
-    for (Int_t i = 0; i < tdc->GetEntriesFast(); i++) {
-        //cout<<"Loop in FillEvent"<<endl;
-        BmnTDCDigit *digit = (BmnTDCDigit*) tdc->At(i);
-        //BmnTDCDigit *tqdc_digit=(BmnTDCDigit*) tqdc_tdc->At(i);
-        if (digit->GetType() != DCH_TDC_TYPE) continue;
-        // if (tdc->GetEntriesFast()!=2) break; // [HERE] Что если сработает больше двух трубок
-        if ((val_tqdc2+val_tqdc3)*0.5<300) break;
-        //map<UInt_t, Long64_t>::iterator it = ts->find(digit->GetSerial());
-        //Long64_t timeShift = (it != ts->end()) ? it->second : 0;
-        FindInMap(digit, time_scint, dch);
+
+    Double_t time_scint = (val_tqdc[0] + val_tqdc[1] + val_tqdc[2] + val_tqdc[3])*0.25;
+    time_scint = 25*time_scint/1000; // channels to nanoseconds ???
+    for (Int_t iTdc = 0; iTdc < tdc->GetEntriesFast(); iTdc++)
+    {
+        auto tdcDigit = (BmnTDCDigit*) tdc->At(iTdc);
+
+        if (tdcDigit->GetType() != DCH_TDC_TYPE) continue;
+
+        if ((val_tqdc[2]+val_tqdc[3])*0.5 < 300) // what is this ???
+        {
+            printf("<BmnDchRaw2Digit::FillEvent> val_tqdc[2]+val_tqdc[3])*0.5 < 300\n");
+            break;
+        }
+        FindInMap(tdcDigit, time_scint, dch);
     }
 }
 
-Int_t BmnDchRaw2Digit::GetChTDC64v(UInt_t tdc, UInt_t ch) {
-    //this is some Vishnevsky's magic!
-    //FIXME! What is going here?!
-    // cout<<"DCH GetChTDC64v"<<endl;
+Int_t BmnDchRaw2Digit::GetChTDC64v(UInt_t tdc, UInt_t ch)
+{
     const Int_t tdc64v_tdcch2ch[2][32] = {
         { 31, 15, 30, 14, 13, 29, 28, 12, 11, 27, 26, 10, 25, 9, 24, 8, 23, 7, 22, 6, 21, 5, 20, 4, 19, 3, 18, 2, 17, 1, 16, 0},
         { 31, 15, 30, 14, 29, 13, 28, 12, 27, 11, 26, 10, 25, 9, 24, 8, 23, 7, 22, 6, 21, 5, 20, 4, 19, 3, 18, 2, 17, 1, 16, 0}
     };
     Int_t val = tdc64v_tdcch2ch[tdc - 1][ch];
-    //cout<<"hptdcid= "<<tdc<<" channel= "<<val<<endl;
     if (tdc == 2) val += 32;
-    // printf("<BmnDchRaw2Digit> OldCh: %d, NewCh: %d\n", ch, val);
     return val;
 };
 
-BmnStatus BmnDchRaw2Digit::FindInMap(BmnTDCDigit* dig, Double_t time_scint, TClonesArray* arr) {
-    // cout<<"DCH FindInMap!"<<endl;
-    DchMapStructure* mapArr = fMap1;
-    Int_t nEntriesInMap =fEntriesInMap1;
+BmnStatus BmnDchRaw2Digit::FindInMap(BmnTDCDigit* dig, Double_t time_scint, TClonesArray* arr)
+{
     Int_t lattency_tqdc = 280;
-    // printf("<BmnDchRaw2Digit> Type: %d, Serial: 0x%x, Slot: %d\n", dig->GetType(), dig->GetSerial(), dig->GetSlot());
-    // cout<<"BmnTDCDigit\tType: "<<dig->GetType()<<"\tSlot: "<<hex<<dig->GetSlot()<<"\tChannel: "<<dig->GetChannel()<<endl;
-    for (Int_t iMap = 0; iMap < nEntriesInMap; ++iMap) {
-        DchMapStructure map = mapArr[iMap];
+
+    for (Int_t iMap = 0; iMap < fNMapEntries; ++iMap)
+    {
+        DchMapStructure map = fMap[iMap];
         if (dig->GetSlot() != map.slot) continue;
         UInt_t hptdcid = dig->GetHptdcId();
-        UInt_t dig_ch=dig->GetChannel();
-        //cout<<"dig_ch= "<<dig_ch<<endl;
-        if (hptdcid==2) dig_ch-=32;
+        UInt_t dig_ch = dig->GetChannel();
+
+        if (hptdcid == 2) dig_ch -= 32;
         UInt_t ch = GetChTDC64v(dig->GetHptdcId(), dig_ch);
-        //cout<<"TDC Channel= "<< ch<< " HptdcId= "<< hptdcid <<endl;
         if (ch > map.channel_high || ch < map.channel_low) continue;
         Double_t tm = dig->GetValue()/10 - time_scint - lattency_tqdc; //divide by 10 for conversion (100 ps -> ns)
-        if (tm<0) continue;
-        new((*arr)[arr->GetEntriesFast()]) BmnDchDigit(map.plane, ch, tm, 0);
-        // printf("<BmnDchRaw2Digit>New DCH digit Plane: %d, Channel: 0x%x, Time: %d\n", map.plane, ch, tm);
+        if (tm < 0) continue;
+        
+        new ((*arr)[arr->GetEntriesFast()]) BmnDchDigit(map.plane, ch, tm, 0);
+
         return kBMNSUCCESS;
     }
-    //return kBMNERROR;
+    return kBMNERROR;
 }
 
 ClassImp(BmnDchRaw2Digit)

@@ -3,20 +3,16 @@
 
 #include "TString.h"
 #include "TSystem.h"
-#include "BmnEnums.h"
-
-#include "BmnTDCDigit.h"
-#include "BmnADCDigit.h"
-#include "BmnTQDCADCDigit.h"
-#include "BmnSyncDigit.h"
 #include "TFile.h"
 #include "TTimeStamp.h"
 #include "TTree.h"
 #include "TClonesArray.h"
-#include <iostream>
-#include <vector>
-#include <array>
-#include <fstream>
+
+#include "BmnEnums.h"
+#include "BmnTDCDigit.h"
+#include "BmnADCDigit.h"
+#include "BmnTQDCADCDigit.h"
+#include "BmnSyncDigit.h"
 #include "BmnGemRaw2Digit.h"
 #include "BmnGemStripDigit.h"
 #include "BmnDchRaw2Digit.h"
@@ -26,15 +22,21 @@
 #include "BmnEventHeader.h"
 #include "BmnRunHeader.h"
 #include "BmnEnums.h"
-#include "DigiArrays.h"
+
 #include <bitset>
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstdlib>
 #include <cstdio>
+#include <iostream>
+#include <vector>
+#include <array>
+#include <fstream>
 #include <list>
 #include <map>
 #include <deque>
+#include <unordered_set>
+
 
 /***************** SET OF DAQ CONSTANTS *****************/
 const UInt_t kSYNC1 = 0x2A502A50;
@@ -86,9 +88,16 @@ const UInt_t kTRIGMINBIAS = 1;
 #define WAIT_LIMIT 40000000
 using namespace std;
 
+struct TriggerMapStructure
+{
+    unsigned int serial;
+    unsigned int slot;
+    int channel;
+};
+
 class BmnRawDataDecoder {
 public:
-    BmnRawDataDecoder(TString file, ULong_t nEvents = 0, ULong_t period = 4);
+    BmnRawDataDecoder(TString file, ULong_t nEvents = 0, ULong_t period = 7);
     BmnRawDataDecoder();
     virtual ~BmnRawDataDecoder();
 
@@ -105,25 +114,6 @@ public:
     BmnStatus DisposeDecoder();
     BmnStatus TakeDataWordShort(UChar_t n, UInt_t *d, UInt_t i, Short_t* valI);
     BmnStatus TakeDataWordUShort(UChar_t n, UInt_t *d, UInt_t i, UShort_t* valU);
-
-    DigiArrays GetDigiArraysObject() {
-        //        fDigiTree->GetEntry(GetEventId());
-        DigiArrays d; // = new DigiArrays();
-        d.silicon = silicon;
-        d.gem = gem;
-        d.ecal = ecal;
-        d.dch = dch;
-        d.header = eventHeader;
-        d.trigAr = NULL;
-        d.trigSrcAr = NULL;
-        if (fTrigMapper){
-            if (fBmnSetup == kBMNSETUP)
-                d.trigAr = fTrigMapper->GetTrigArrays();
-            else
-                d.trigSrcAr = fTrigMapper->GetTrigArrays();
-        }
-        return d;
-    }
 
     TTree* GetDigiTree() {
         return fDigiTree;
@@ -193,12 +183,9 @@ public:
         return fRootFileName;
     }
 
-    BmnStatus SetDetectorSetup(Bool_t* setup) {
-        for (Int_t i = 0; i < 11; ++i) {
-            fDetectorSetup[i] = setup[i];
-        }
-
-        return kBMNSUCCESS;
+    void AddDetector(StandDetector detector)
+    {
+        fDetectorSetup.emplace(detector);
     }
 
     void SetEvForPedestals(UInt_t v) {
@@ -207,14 +194,6 @@ public:
 
     UInt_t GetEvForPedestals() {
         return fEvForPedestals;
-    }
-
-    void SetBmnSetup(BmnSetup v) {
-        this->fBmnSetup = v;
-    }
-
-    BmnSetup GetBmnSetup() const {
-        return fBmnSetup;
     }
 
     UInt_t GetBoundaryRun(UInt_t nSmpl) {
@@ -231,10 +210,17 @@ public:
 private:
 
     //9 bits correspond to detectors which we need to decode
-    Bool_t fDetectorSetup[11];
+    unordered_set<StandDetector> fDetectorSetup;
+
+    Bool_t IsActive(StandDetector detector) { return fDetectorSetup.find(detector) != fDetectorSetup.end(); }
 
     Bool_t IsNewWindow(Int_t nEvent);
     void CalculateWindowBoundaries(Int_t &windowBegin, Int_t &windowEnd, Int_t nEvent);
+    void RecalculatePedestalsForWindow(Int_t iEv);
+    void FillEventHeader();
+    BmnStatus OpenInputOutputFiles();
+    void FillNoisyChannelsMaps();
+    void DecodeEvent(UInt_t iEv);
 
     Int_t GetRunIdFromFile(TString name);
     vector<UInt_t> fSiliconSerials; //list of serial id for Silicon
@@ -324,11 +310,9 @@ private:
     BmnECALRaw2Digit *fECALMapper;
     BmnEventType fCurEventType;
     BmnEventType fPrevEventType;
-    BmnSetup fBmnSetup;
     UInt_t fPedEvCntr;
     Int_t fEvForPedestals;
     Bool_t fPedEnough;
-    GemMapStructure* fGemMap;
     TriggerMapStructure* fT0Map;
 
     //Map to store pairs <Crate serial> - <crate time - T0 time>

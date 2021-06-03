@@ -12,6 +12,7 @@ map<Int_t, TH2D *> hAmplitudesCorrelMap;
 TH1I* hClustersSizeX;
 TH1I* hClustersSizeY;
 array<array<TH1D *, 4>, 3> hClusterAmplitude;
+TH1D* h1Signal[3];
 
 void OpenInput(UInt_t runId);
 void CreateHisto();
@@ -84,8 +85,11 @@ void CreateHisto()
         hOccupStationVector.push_back(hist);
     }
     
-    hClustersSizeX = new TH1I("h1_clusters_x", "Cluster size;n strips", 19, 1-0.5, 20-0.5);
-    hClustersSizeY = new TH1I("h1_clusters_y", "Cluster size;n strips", 19, 1-0.5, 20-0.5);
+    hClustersSizeX = new TH1I("h1_clusters_x", "Cluster size;Number of strips", 15, 1-0.5, 6-0.5);
+    hClustersSizeX->GetXaxis()->SetNdivisions(5);
+    hClustersSizeY = new TH1I("h1_clusters_y", "Cluster size;Number of strips", 15, 1-0.5, 6-0.5);
+    hClustersSizeY->GetXaxis()->SetNdivisions(5);
+
 
     for (int iStation = 0; iStation < 3; iStation++)
     for (int iClusterSize = 0; iClusterSize < 4; iClusterSize++)
@@ -93,6 +97,13 @@ void CreateHisto()
         histName = Form("h2_amplitude_size%d_station%d", iClusterSize+1, iStation);
         histDiscription = Form("Cluster amplitude (station %d);amplitude [AU]", iStation);
         hClusterAmplitude[iStation][iClusterSize] = new TH1D(histName, histDiscription, 200, 0, 2000);
+    }
+
+    for (int iStation = 0; iStation < 3; iStation++)
+    {
+        histName = Form("h1_amplitude_station%d", iStation);
+        histDiscription = Form("Silicon signal amplitude (station %d);AU;", iStation);
+        h1Signal[iStation] = new TH1D(histName, histDiscription, 80, 0, 800);
     }
 
 }
@@ -121,6 +132,11 @@ void Analyze()
             Double_t clusterSizeX = siHit->GetClusterSizeX();
             Double_t clusterSizeY = siHit->GetClusterSizeY();
 
+            if (!StandSiliconGeoMapper::fIsActiveModule[station][module]) continue;
+
+            // if (clusterSizeX > 1 || clusterSizeY > 1) continue;
+            
+
             Int_t key = 10 * station + 1 * module;
             hOccupModuleMap.find(key)->second->Fill(localX, localY);
 
@@ -134,11 +150,11 @@ void Analyze()
 
             hOccupStationVector[station]->Fill(globalHitPos.X(), globalHitPos.Y());
 
-            if (clusterSizeX <= 4)
-                hClusterAmplitude[station][clusterSizeX-1]->Fill(amplitudeX);
+            hClusterAmplitude[station][clusterSizeX-1]->Fill(amplitudeX);
+            hClusterAmplitude[station][clusterSizeY-1]->Fill(amplitudeY);
 
-            if (clusterSizeY <= 4)
-                hClusterAmplitude[station][clusterSizeY-1]->Fill(amplitudeY);
+            h1Signal[station]->Fill(abs(amplitudeX));
+            h1Signal[station]->Fill(abs(amplitudeY));
             
             // siHit->Print();
         } // end of hit
@@ -200,8 +216,10 @@ void DrawHisto(UInt_t runId)
         delete canvas;
     }
 
-    TCanvas *canvas = new TCanvas("canvas", "", 600, 800);
+    TCanvas *canvas = new TCanvas("canvas", "", 800, 600);
+    hClustersSizeX->SetLineWidth(3);
     hClustersSizeX->SetLineColor(2);
+    hClustersSizeY->SetLineWidth(3);
     hClustersSizeY->SetLineColor(9);
     hClustersSizeX->Draw("HIST");
     hClustersSizeY->Draw("SAME HIST");
@@ -223,4 +241,17 @@ void DrawHisto(UInt_t runId)
         canvas->SetLogy(kFALSE);
         canvas->Clear();
     }
+
+    auto cSignalAll = new TCanvas(Form("c_signalAll"), "Silicon signal", 800, 600);
+    h1Signal[2]->SetLineWidth(3);
+    h1Signal[0]->SetLineWidth(3);
+    h1Signal[1]->SetLineWidth(3);
+    h1Signal[2]->SetLineColor(9);
+    h1Signal[0]->SetLineColor(2);
+    h1Signal[1]->SetLineColor(1);
+    h1Signal[2]->Draw("");
+    h1Signal[0]->Draw("SAME");
+    h1Signal[1]->Draw("SAME");
+    // cSignalAll->BuildLegend();
+    cSignalAll->SaveAs(Form("pictures/run%04d_hits_si_amplitude_all.png", runId));
 }

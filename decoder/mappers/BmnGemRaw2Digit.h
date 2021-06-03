@@ -5,17 +5,19 @@
 #include "TTree.h"
 #include "TClonesArray.h"
 #include "TH1F.h"
-#include <iostream>
+#include "TH1D.h"
+#include "TMath.h"
+
 #include "BmnGemStripDigit.h"
 #include "BmnADCDigit.h"
 #include "BmnEnums.h"
-#include "TMath.h"
+#include "BmnAdcProcessor.h"
+
+#include <iostream>
 #include <fstream>
 #include <list>
 #include <map>
-#include "BmnAdcProcessor.h"
 #include <vector>
-#include "db_structures.h"
 
 #define N_CH_IN_CRATE 2048 //number of channels in one crate (64ch x 32smpl))
 #define N_CH_IN_SMALL_GEM 512 //number of channels in small GEM stations (sum of all redout channels)
@@ -24,11 +26,22 @@
 #define N_CH_IN_BIG_GEM_0 1023//988 //number of channels in hot zone of one part of big GEM stations (sum of redout channels from X0 and Y0)
 #define N_CH_IN_BIG_GEM_1 2176//2100 //number of channels in big zone of one part of big GEM stations (sum of redout channels from X1 and Y1)
 #define N_CH_BUF 4096
-#define N_MODULES 2
-#define N_LAYERS 4
+#define N_STATIONS 2
+#define N_SIDES 2
+#define N_STRIPS 768
 
 using namespace std;
 using namespace TMath;
+
+struct GemMapStructure
+{
+    unsigned int serial;
+    int channel_low;
+    int channel_high;
+    int station;
+    int side;
+    int part;
+};
 
 struct BmnGemMap {
     Int_t strip;
@@ -48,32 +61,31 @@ public:
     BmnGemRaw2Digit();
     ~BmnGemRaw2Digit();
 
-    BmnStatus FillEvent(TClonesArray *adc, TClonesArray *gem);
+    BmnStatus FillEvent(TClonesArray *adc, TClonesArray *gem, UInt_t event);
     BmnStatus FillProfiles(TClonesArray *adc);
     BmnStatus FillNoisyChannels();
 
 private:
-
-    BmnGemMap* fSmall;
-    BmnGemMap* fMid;
-    BmnGemMap* fBigL0;
-    BmnGemMap* fBigL1;
-    BmnGemMap* fBigR0;
-    BmnGemMap* fBigR1;
         
-    TH1F**** fSigProf;
-    Bool_t**** fNoisyChannels;
+    TH1F*** fSigProf;
+    Bool_t*** fNoisyChannels;
+
+    TH1D* fRaw;
+    TH1D* fRawMPed;
+    TH1D* fRawMPedCMS;
+    TH1D* fPed;
+    TH1D* fPedRms;
+    TH1D* fCMS;
+    TH1D* fNoiseLvl;
+    TH1D* fTreshold;
     
     TString fMapFileName;
 
     vector<GemMapStructure> fMap;
 
-    void ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, TClonesArray *gem, Bool_t doFill);
-    // BmnStatus ReadMap(TString parName, BmnGemMap* m, Int_t lay, Int_t mod); //COMMENTED
+    void ProcessDigit(BmnADCDigit* adcDig, GemMapStructure* gemM, TClonesArray *gem, Bool_t doFill, UInt_t event);
 
     Int_t fEntriesInGlobMap; // number of entries in BD table for Global Mapping
-
-    Int_t fEventId;
 
     ClassDef(BmnGemRaw2Digit, 1);
 };

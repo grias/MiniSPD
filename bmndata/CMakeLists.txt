@@ -26,8 +26,6 @@ set(SRCS
 BmnEventHeader.cxx
 BmnRunHeader.cxx
 BmnEnums.h
-DigiArrays.h
-db_structures.h
 BmnTrigInfo.cxx
 BmnMath.cxx
 digits/BmnSiliconDigit.cxx

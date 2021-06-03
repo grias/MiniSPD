@@ -30,6 +30,16 @@ std::array<Int_t, 2> StandReverseSiliconGeoMapper::DivideInterStripInTwo(Double_
     return {strip1, strip2};
 }
 
+Double_t StandReverseSiliconGeoMapper::CalculateOffsetY(Double_t localX, Double_t localY, Int_t station)
+{
+    if (fModulesTypes[station] == MODULE_LONG && localY > fUpperSensetiveBoundaryShortModule)
+        localY -= fClearance;
+
+    Double_t stripOffsetY = localY*fTangentOfStripsYSlope + localX;
+    
+    return stripOffsetY;
+}
+
 std::array<Double_t, 2> StandReverseSiliconGeoMapper::CalculateLocalCoordinatesForHit(Int_t station, Int_t module, Double_t globalX, Double_t globalY)
 {
     TVector3 hit(globalX, globalY, 0);

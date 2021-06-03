@@ -142,8 +142,6 @@ BmnStatus BmnAdcProcessor::RecalculatePedestals() {
     //     fPedVal[iCr][iCh][iSmpl] = fPedVal[iCr][iCh][iSmpl] / N_EV_FOR_PEDESTALS;
     // }
 
-    WritePedFile();
-
     return kBMNSUCCESS;
 }
 
@@ -194,7 +192,7 @@ BmnStatus BmnAdcProcessor::RecalculatePedestalsX()
                 Double_t sigma = 0.;
                 for (auto &&data : goodPedData)
                 {
-                    sigma += (ped - data) * (ped - data);
+                    sigma += Sq(ped - data);
                 }
                 if (sigma != 0.)
                 {
@@ -237,70 +235,7 @@ BmnStatus BmnAdcProcessor::RecalculatePedestalsX()
             }
         }
     }
-}
-
-void BmnAdcProcessor::ReadPedestalsFromFile()
-{
-
-    Int_t pedRun = 852;
-    ifstream pedFile(Form("%s/input/%s_pedestals_%d.txt", getenv("VMCWORKDIR"), fDetName.Data(), pedRun));
-    if (!pedFile.is_open())
-        throw std::runtime_error("Cant open input file");
-    
-    string dummy;
-    getline(pedFile, dummy); //comment line in input file
-    getline(pedFile, dummy); //comment line in input file
-
-    while (!pedFile.eof())
-    {
-        Int_t nCrate = -1;
-        UInt_t serial;
-        Int_t ch_sample;
-        Int_t nCh;
-        Int_t nSample;
-        Double_t pedVal;
-        Double_t pedRms;
-
-        pedFile >> std::hex >> serial >> std::dec >> ch_sample >> pedVal >> pedRms;
-        if (!pedFile.good()) break;
-
-        nCh = ch_sample / fNSamples;
-        nSample = ch_sample % fNSamples;
-
-        // cout << hex << serial << dec << "\t" << ch_sample << "\t" << nCh << "\t" << nSample << "\t" << pedVal << "\t" << pedRms << endl;
-        // cout << serial << "\t" << ch_sample << "\t" << nCh << "\t" << nSample << "\t" << pedVal << "\t" << pedRms << endl;
-    
-        for (size_t iSerial = 0; iSerial < fSerials.size(); iSerial++)
-        {
-            auto ser = fSerials[iSerial];
-            if (ser == serial) 
-            {
-                nCrate = iSerial;
-                break;
-            }
-            
-        }
-        if (nCrate == -1)
-        {
-            printf("-E-<BmnAdcProcessor::ReadPedestalsFromFile> Serial from file not found!\n");
-        }
-
-        fPedVal[nCrate][nCh][nSample] = pedVal;
-        fPedRms[nCrate][nCh][nSample] = pedRms;
-    }
-    
-}
-
-void BmnAdcProcessor::WritePedFile()
-{
-    ofstream pedFile(Form("%s/input/%s_pedestals_%d.txt", getenv("VMCWORKDIR"), fDetName.Data(), fRun));
-    pedFile << "Serial\tCh_id\tPed\tRMS" << endl;
-    pedFile << "============================================" << endl;
-    for (Int_t iCr = 0; iCr < fNSerials; ++iCr)
-        for (Int_t iCh = 0; iCh < fNChannels; ++iCh)
-            for (Int_t iSmpl = 0; iSmpl < fNSamples; ++iSmpl)
-                pedFile << hex << fSerials[iCr] << dec << "\t" << iCh * fNSamples + iSmpl << "\t" << fPedVal[iCr][iCh][iSmpl] << "\t" << fPedRms[iCr][iCh][iSmpl] << endl;
-    pedFile.close();
+    return kBMNSUCCESS;
 }
 
 Double_t BmnAdcProcessor::CalcCMS(Int_t iCr, Int_t iCh, Int_t iEv)

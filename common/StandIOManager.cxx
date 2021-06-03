@@ -105,29 +105,26 @@ void StandIOManager::ClearArrays()
     }
 }
 
-TClonesArray* StandIOManager::GetInputDataArray(TString className)
+TClonesArray* StandIOManager::GetInputDataArray(TString branchName)
 {
-    auto dataArray = fInputDataMap[className];
-    if (!dataArray)
-    {
-        std::cerr<<"-E-<StandIOManager::GetInputDataArray> Cant find data with classname \""<<className<<"\""<< std::endl;
-        throw std::runtime_error("-E-<StandIOManager::GetInputDataArray> Cant find input data");
-    }
-    if (fVerbose)
-    std::cout<<"-I-<StandIOManager::GetInputDataArray> Found "<<className<<std::endl;
-    return dataArray;
+    return GetDataArray(fInputDataMap, branchName);
 }
 
-TClonesArray* StandIOManager::GetOutputDataArray(TString className)
+TClonesArray* StandIOManager::GetOutputDataArray(TString branchName)
 {
-    auto dataArray = fOutputDataMap[className];
+    return GetDataArray(fOutputDataMap, branchName);
+}
+
+TClonesArray* StandIOManager::GetDataArray(std::map<TString, TClonesArray*> dataMap, TString branchName)
+{
+    auto dataArray = dataMap[branchName];
     if (!dataArray)
     {
-        std::cerr<<"-E-<StandIOManager::GetOutputDataArray> Cant find data with classname \""<<className<<"\""<< std::endl;
-        throw std::runtime_error("-E-<StandIOManager::GetOutputDataArray> Cant find output data");
+        std::cerr<<"-E-<StandIOManager::GetDataArray> Cant find data with branchName \""<<branchName<<"\""<< std::endl;
+        throw std::runtime_error("-E-<StandIOManager::GetDataArray> Cant find data array");
     }
     if (fVerbose)
-    std::cout<<"-I-<StandIOManager::GetOutputDataArray> Found "<<className<<std::endl;
+        std::cout<<"-I-<StandIOManager::GetDataArray> Found "<<branchName<<std::endl;
     return dataArray;
 }
 
@@ -165,7 +162,7 @@ void StandIOManager::OpenInputBranches()
         auto clonesArray = new TClonesArray(inputBranchPair.second);
         fInputTree->SetBranchAddress(inputBranchPair.first, &clonesArray);
 
-        fInputDataMap.insert({inputBranchPair.second, clonesArray});
+        fInputDataMap.insert({inputBranchPair.first, clonesArray});
         if (fVerbose)
         printf("-I-<StandIOManager::OpenInputBranches> Input branch %s registered\n", inputBranchPair.first.Data());
     }
@@ -178,7 +175,7 @@ void StandIOManager::CreateOutputBranches()
         auto clonesArray = new TClonesArray(outputBranchPair.second);
         fOutputTree->Branch(outputBranchPair.first, &clonesArray);
 
-        fOutputDataMap.insert({outputBranchPair.second, clonesArray});
+        fOutputDataMap.insert({outputBranchPair.first, clonesArray});
         if (fVerbose)
         printf("-I-<StandIOManager::CreateOutputBranches> Output branch %s created\n", outputBranchPair.first.Data());
     }

@@ -5,6 +5,7 @@ ${CMAKE_SOURCE_DIR}/bmndata/digits
 ${CMAKE_SOURCE_DIR}/standdata
 ${CMAKE_SOURCE_DIR}/common
 ${CMAKE_SOURCE_DIR}/hitproducer
+${CMAKE_SOURCE_DIR}/hitproducer/hitmakers
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -20,12 +21,20 @@ set(SRCS
     StandHitsProducer.cxx
     StandSiliconCluster.cxx
     StandClustersContainer.cxx
+
+    hitmakers/AbstractHitMaker.cxx
+    hitmakers/SiliconHitMaker.cxx
+    hitmakers/GemHitMaker.cxx
 )
 
 set(HEADERS
     StandHitsProducer.h
     StandSiliconCluster.h
     StandClustersContainer.h
+
+    hitmakers/AbstractHitMaker.h
+    hitmakers/SiliconHitMaker.h
+    hitmakers/GemHitMaker.h
 )
 
 Set(LINKDEF StandHitsProducerLinkDef.h)

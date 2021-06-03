@@ -46,6 +46,8 @@ private:
     void ClearArrays();
     void WriteTreeIntoOutputFile() { fOutputTree->Write(); }
 
+    TClonesArray* GetDataArray(std::map<TString, TClonesArray*> dataMap, TString branchName);
+
     void OpenInputFile();
     void CreateOutputFile();
 
@@ -64,7 +66,7 @@ private:
     TTree* fInputTree;
     TTree* fOutputTree;
 
-    std::map<TString, TString> fInputBranchesNames;  /* Does set of TStrings work right? */
+    std::map<TString, TString> fInputBranchesNames;
     std::map<TString, TString> fOutputBranchesNames;
 
     std::map<TString, TClonesArray*> fInputDataMap;
