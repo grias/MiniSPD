@@ -139,10 +139,25 @@ void DrawHisto(UInt_t runId)
         canvas->SaveAs(Form("pictures_C/run%04d_digits_si_occupancy_mod%03d.C", runId, key));
     }
 
+    
     for (Int_t iStation = 0; iStation < 3; iStation++)
     {
         auto cSignal = new TCanvas(Form("c_signal_st%d", iStation), "Silicon signal", 600, 800);
         h1Signal[iStation]->Draw();
         cSignal->SaveAs(Form("pictures/run%04d_digits_si_amplitude_station%d.png", runId, iStation));
     }
+
+    auto cSignalAll = new TCanvas(Form("c_signalAll"), "Silicon signal", 600, 800);
+    h1Signal[2]->SetLineWidth(3);
+    h1Signal[0]->SetLineWidth(3);
+    h1Signal[1]->SetLineWidth(3);
+    h1Signal[2]->SetLineColor(9);
+    h1Signal[0]->SetLineColor(2);
+    h1Signal[1]->SetLineColor(1);
+    h1Signal[2]->Draw("");
+    h1Signal[0]->Draw("SAME");
+    h1Signal[1]->Draw("SAME");
+    // cSignalAll->BuildLegend();
+    cSignalAll->SaveAs(Form("pictures/run%04d_digits_si_amplitude_all.png", runId));
+
 }

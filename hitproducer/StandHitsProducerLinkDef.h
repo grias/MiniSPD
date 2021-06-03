@@ -8,5 +8,8 @@
 
 #pragma link C++ class StandSiliconCluster+;
 #pragma link C++ class StandClustersContainer+;
+#pragma link C++ class AbstractHitMaker+;
+#pragma link C++ class SiliconHitMaker+;
+#pragma link C++ class GemHitMaker+;
 
 #endif

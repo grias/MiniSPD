@@ -120,5 +120,6 @@ add_subdirectory (hitproducer)
 add_subdirectory (tracksproducer)
 add_subdirectory (executables)
 add_subdirectory (mille)
+add_subdirectory (TMillepede)
 
 WRITE_CONFIG_FILE(config.sh)

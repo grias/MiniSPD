@@ -77,7 +77,6 @@ Macro(ROOT_GENERATE_DICTIONARY_NEW)
   # Add -I and -D to include directories and definitions
   Format(Int_INC "${Int_INC}" "-I" "")
   Format(Int_DEF "${Int_DEF}" "-D" "")
-
   #---call rootcint / cling --------------------------------
   set(OUTPUT_FILES ${Int_DICTIONARY})
 

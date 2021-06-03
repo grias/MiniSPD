@@ -1,10 +1,8 @@
 #include "BmnGemStripDigit.h"
-#include "db_structures.h"
 
 BmnGemStripDigit::BmnGemStripDigit() {
     fStation = -1;
-    fModule = 0;
-    fStripLayer = 0;
+    fLayer = 0;
     fStripNumber = 0;
     fStripSignal = 0.0;
     fIsGoodDigit = kTRUE;
@@ -12,16 +10,15 @@ BmnGemStripDigit::BmnGemStripDigit() {
 
 BmnGemStripDigit::BmnGemStripDigit(BmnGemStripDigit* digit) {
     fStation = digit->fStation;
-    fModule = digit->fModule;
-    fStripLayer = digit->fStripLayer;
+    fLayer = digit->fLayer;
     fStripNumber = digit->fStripNumber;
     fStripSignal = digit->fStripSignal;
+    fIsGoodDigit = digit->fIsGoodDigit;
 }
 
-BmnGemStripDigit::BmnGemStripDigit(Int_t iStation, Int_t iModule, Int_t iStripLayer, Int_t iStripNumber, Double_t iStripSignal) {
+BmnGemStripDigit::BmnGemStripDigit(Int_t iStation, Int_t iStripLayer, Int_t iStripNumber, Double_t iStripSignal) {
     fStation = iStation;
-    fModule = iModule;
-    fStripLayer = iStripLayer;
+    fLayer = iStripLayer;
     fStripNumber = iStripNumber;
     fStripSignal = iStripSignal;
 }

@@ -17,16 +17,22 @@ set(SRCS
     StandIOManager.cxx
     StandSiliconGeoMapper.cxx
     StandReverseSiliconGeoMapper.cxx
+    StandGemGeoMapper.cxx
+    StandStrawGeoMapper.cxx
+    Hister.cxx
 )
 
 set(HEADERS
     StandIOManager.h
     StandSiliconGeoMapper.h
     StandReverseSiliconGeoMapper.h
+    StandGemGeoMapper.h
+    StandStrawGeoMapper.h
+    Hister.h
 )
 
 Set(LINKDEF StandCommonLinkDef.h)
 Set(LIBRARY_NAME StandCommon)
-Set(DEPENDENCIES Physics RIO Tree)
+Set(DEPENDENCIES Physics Gpad Hist RIO Tree)
 
 GENERATE_LIBRARY()

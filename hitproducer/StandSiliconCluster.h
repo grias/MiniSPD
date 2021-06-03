@@ -21,8 +21,6 @@ public:
     Int_t GetClusterSize() { return fStripSignalPairs.size(); }
     Double_t GetAmplitude();
 
-    
-
     void SetLocalCoordinate(Double_t coordinate) { fLocalCoordinate = coordinate; }
 
     void AddStrip(Int_t strip, Double_t signal) { fStripSignalPairs.insert({strip, signal}); }

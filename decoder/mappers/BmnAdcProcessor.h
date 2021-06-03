@@ -82,8 +82,13 @@ public:
         return fRun;
     }
 
+    // returns vector with random numbers. use GetSerialsPtr() instead
     vector<UInt_t> GetSerials() {
         return fSerials;
+    }
+
+    vector<UInt_t> *GetSerialsPtr() {
+        return &fSerials;
     }
 
     UInt_t GetBoundaryRun(UInt_t nSmpl) {
@@ -96,7 +101,6 @@ public:
 
 private:
     void ClearPedestals();
-    void WritePedFile();
 
     vector<UInt_t> fSerials; //list of serial id for ADC-detector
 

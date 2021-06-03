@@ -75,15 +75,10 @@ public:
         tMno.serial = 0;
         return tMno;
     }
-    
-    void SetSetup(BmnSetup stp) {
-        fSetup = stp;
-    }
 
 private:
 
     vector<BmnTrigMapping> fMap;
-    BmnSetup fSetup;
     ifstream fMapFile;
     ifstream fINLFile;
     TString fMapFileName;

@@ -12,7 +12,8 @@ Int_t StandSiliconGeoMapper::fStripsNumberCorrection[3][4][2] =
 };
 
 Double_t StandSiliconGeoMapper::fPitch[2] = {0.095, 0.103};
-Double_t StandSiliconGeoMapper::fFirstStripOffset[2] = {1.148, 1.287};
+// Double_t StandSiliconGeoMapper::fFirstStripOffset[2] = {1.148, 1.287};
+Double_t StandSiliconGeoMapper::fFirstStripOffset[2] = {1.148, 1.237};
 
 Int_t StandSiliconGeoMapper::fIfReverseModuleX[3][4] = {{1,1},{1,0,1,0},{1,0}};
 Int_t StandSiliconGeoMapper::fIfReverseModuleY[3][4] = {{1,1},{0,0,1,1},{0,0}};
@@ -29,19 +30,36 @@ Double_t StandSiliconGeoMapper::fModuleCSToStationCS[3][4][3] =
     {{60., -5., 7.3}, {0., 0., 0}}
 }; /* mm */
 
-Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] = 
-{
-    {{0, 0, 0},{-0.049, 0, 0}},
-    {{-0.143, 0, 0},{-0.149, 0, 0},{-0.077, 0, 0},{-0.137, 0, 0}},
-    {{0, 0, 0},{+0.3, 0, 0}}
-}; /* mm */
-
+// good without rotation
 // Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] = 
 // {
-//     {{0, 0, 0},{-0.149, 0, 0}},
-//     {{-0.143, 0, 0},{-0.249, 0, 0},{-0.077, 0, 0},{-0.237, 0, 0}},
-//     {{0, 0, 0},{+0.2, 0, 0}}
+//     {{0, 0, 0},{-0.130, 0, 0}},
+//     {{-0.133, 0, 0},{-0.220, 0, 0},{-0.083, 0, 0},{-0.200, 0, 0}},
+//     {{0, 0, 0},{+0.3, 0, 0}}
 // }; /* mm */
+
+// testing
+Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] = 
+{
+    {{0, 0, 0},{-0.110, 0, 0}},
+    {{-0.132, 0, 0},{-0.224, 0, 0},{-0.084, 0, 0},{-0.205, 0, 0}},
+    {{0, 0, 0},{+0.20, 0, 0}}
+}; /* mm */
+
+// for two independent parts
+// Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] = 
+// {
+//     {{0, 0, 0},{-0.130, 0, 0}},
+//     {{-0.138, 0, 0},{-0.195, 0, 0},{-0.077, 0, 0},{-0.180, 0, 0}},
+//     {{0, 0, 0},{+0.3, 0, 0}}
+// }; /* mm */
+
+Int_t StandSiliconGeoMapper::fIsActiveModule[3][4] = 
+// {{1, 0},{1, 0, 1, 0},{1, 0}}; // part1
+// {{0, 1},{0, 1, 0, 1},{0, 1}}; // part2
+// {{1, 1},{1, 1, 1, 1},{1, 1}}; // All
+{{1, 1},{1, 1, 1, 1},{1, 1}}; // Test
+
 
 Double_t StandSiliconGeoMapper::fModuleRotationCorrection[3][4][3] = 
 {
@@ -51,7 +69,10 @@ Double_t StandSiliconGeoMapper::fModuleRotationCorrection[3][4][3] =
 }; /* deg */
 
 Double_t StandSiliconGeoMapper::fStationsRotation[3] = 
-{0.001745, 0.001745, 0.002443}; /* rad */
+// {-0.001745, -0.001745, -0.002443}; /* rad */ // good
+{0.0, 0.0, 0.0}; /* rad */
+// {0.0872665, 0.0, 0.0}; /* rad */
+// {-0.0872665, 0.0, 0.0}; /* rad */
 
 Double_t StandSiliconGeoMapper::fStationCSToGlobalCS[3][3] =
 {
@@ -95,43 +116,13 @@ TVector3 StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(Int_t station, 
     hit += TVector3(fModuleCSToStationCS[station][module][0], fModuleCSToStationCS[station][module][1], fModuleCSToStationCS[station][module][2]);
     hit += TVector3(fModulePositionCorrection[station][module][0], fModulePositionCorrection[station][module][1], fModulePositionCorrection[station][module][2]);
 
-    // hit.RotateZ(fStationsRotation[station]);
+    hit.RotateZ(fStationsRotation[station]);
 
     hit += TVector3(fStationCSToGlobalCS[station][0], fStationCSToGlobalCS[station][1], fStationCSToGlobalCS[station][2]);
     hit += TVector3(fStationPositionCorrection[station][0], fStationPositionCorrection[station][1], fStationPositionCorrection[station][2]);
 
     return hit;
 }
-
-// std::array<Double_t, 2> StandSiliconGeoMapper::CalculateLocalCoordinatesForHit(Int_t station, Int_t module, Double_t globalX, Double_t globalY)
-// {
-//     TVector3 hit(globalX, globalY, 0);
-
-//     hit -= TVector3(fStationPositionCorrection[station][0], fStationPositionCorrection[station][1], fStationPositionCorrection[station][2]);
-//     hit -= TVector3(fStationCSToGlobalCS[station][0], fStationCSToGlobalCS[station][1], fStationCSToGlobalCS[station][2]);
-
-//     // hit.RotateZ(-fStationsRotation[station]);
-
-//     hit -= TVector3(fModuleCSToStationCS[station][module][0], fModuleCSToStationCS[station][module][1], 0);
-//     hit -= TVector3(fModulePositionCorrection[station][module][0], fModulePositionCorrection[station][module][1], 0);
-
-//     Double_t localX = hit.X();
-//     Double_t localY = hit.Y();
-
-//     if (fIfSwitchModuleSideX[station][module])
-//         localX = localX - fSiModuleWidthX;
-
-//     if (fIfSwitchModuleSideY[station][module])
-//         localY = localY + fSiModuleWidthY[station];
-
-//     if (fIfReverseModuleX[station][module])
-//         localX = -localX;
-
-//     if (fIfReverseModuleY[station][module])
-//         localY = -localY;
-
-//     return {localX, localY};
-// }
 
 Double_t StandSiliconGeoMapper::CalculateLocalY(Double_t localX, Double_t stripOffsetY, Int_t station)
 {
@@ -141,16 +132,6 @@ Double_t StandSiliconGeoMapper::CalculateLocalY(Double_t localX, Double_t stripO
         localY += fClearance;
 
     return localY;
-}
-
-Double_t StandSiliconGeoMapper::CalculateOffsetY(Double_t localX, Double_t localY, Int_t station)
-{
-    if (fModulesTypes[station] == MODULE_LONG && localY > fUpperSensetiveBoundaryShortModule)
-        localY -= fClearance;
-
-    Double_t stripOffsetY = localY*fTangentOfStripsYSlope + localX;
-    
-    return stripOffsetY;
 }
 
 Bool_t StandSiliconGeoMapper::IsInSensitiveRange(Int_t station, Double_t localY)
@@ -171,6 +152,6 @@ Bool_t StandSiliconGeoMapper::IsInSensitiveRange(Int_t station, Double_t localY)
         break;
     }
 
-    return kFALSE;
-    // return kTRUE;
+    // return kFALSE;
+    return kTRUE;
 }

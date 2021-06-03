@@ -68,9 +68,7 @@ void StandTracksProducer::ProduceTracksFromEvents(Int_t startEvent, Int_t endEve
     for (size_t iEvent = startEvent; iEvent <= endEvent; iEvent++)
     {
         fIOManager->StartEvent(iEvent);
-
         ProduceTracksFromCurrentEvent();
-
         fIOManager->EndEvent();
     }
 }
@@ -102,7 +100,7 @@ void StandTracksProducer::FindTrackCandidates(vector<TrackCandidate> &trackCandi
 
     Int_t nHits = fSiliconHitsArray->GetEntriesFast();
     if (nHits > 50) return; // bad events
-    // if (nHits > 3) return;
+    if (nHits > 3) return;
     
     // cout << "-I-<StandTracksProducer::FindTrackCandidates> Total silicon hits: " << nHits << endl;
 
@@ -118,16 +116,9 @@ void StandTracksProducer::FindTrackCandidates(vector<TrackCandidate> &trackCandi
         HitWrapper hit(iHit, station); 
         hit.module = module;
 
-        hit.globalPosition = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);        
+        hit.globalPosition = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);
 
-        Int_t isActiveModule[3][4] = 
-        {
-            {1, 1},
-            {1, 1, 1, 1},
-            {1, 1}
-        };
-
-        if (!isActiveModule[station][module]) continue;
+        if (!StandSiliconGeoMapper::fIsActiveModule[station][module]) continue;
         
         stationsHits[hit.station].push_back(hit);
     }
@@ -304,12 +295,12 @@ void StandTracksProducer::ConfigureOutput()
 
 void StandTracksProducer::GetInputData()
 {
-    fSiliconHitsArray = fIOManager->GetInputDataArray("StandSiliconHit");
+    fSiliconHitsArray = fIOManager->GetInputDataArray("SiliconHits");
 }
 
 void StandTracksProducer::GetOutputData()
 {
-    fSiliconTracksArray = fIOManager->GetOutputDataArray("StandSiliconTrack");
+    fSiliconTracksArray = fIOManager->GetOutputDataArray("SiliconTracks");
 }
 
 void StandTracksProducer::CloseInputOutputFiles()

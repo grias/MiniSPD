@@ -1,0 +1,27 @@
+//serial_to_GEM_id//
+   Serial    Ch_lo    Ch_hi   GEM_id     Side    Part     
+=====================================================
+0x80bcccf        0        3        0        0       0
+0x80bcccf        4        7        0        1       0
+0x80bcccf        8       11        0        0       1
+0x80bcccf       12       15        0        1       1
+0x80bcccf       16       19        0        0       2
+0x80bcccf       20       23        0        1       2
+0x80bcccf       24       27        0        0       3
+0x80bcccf       28       31        0        1       3
+0x80bcccf       32       35        0        0       4
+0x80bcccf       36       39        0        1       4
+0x80bcccf       40       43        0        0       5
+0x80bcccf       44       47        0        1       5
+0x611d0da        0        3        1        0       0
+0x611d0da        4        7        1        1       0
+0x611d0da        8       11        1        0       1
+0x611d0da       12       15        1        1       1
+0x611d0da       16       19        1        0       2
+0x611d0da       20       23        1        1       2
+0x611d0da       24       27        1        0       3
+0x611d0da       28       31        1        1       3
+0x611d0da       32       35        1        0       4
+0x611d0da       36       39        1        1       4
+0x611d0da       40       43        1        0       5
+0x611d0da       44       47        1        1       5

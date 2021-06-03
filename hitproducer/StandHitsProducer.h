@@ -5,10 +5,11 @@
 #include <TString.h>
 #include <TClonesArray.h>
 
-#include "BmnSiliconDigit.h"
-#include "StandSiliconCluster.h"
-#include "StandClustersContainer.h"
 #include "StandIOManager.h"
+#include "hitmakers/AbstractHitMaker.h"
+
+#include <vector>
+#include <memory>
 
 const TString kINPUTTREENAME = "cbmsim";
 
@@ -20,6 +21,8 @@ public:
 
     void SetInputFileName(TString inputFileName) { fInputFileName = inputFileName; }
     void SetOutputFileName(TString outputFileName) { fOutputFileName = outputFileName; }
+
+    void AddHitMaker(std::shared_ptr<AbstractHitMaker> hitMaker) { fHitMakersCollection.push_back(hitMaker); }
 
     void ProduceHitsFromAllEvents();
     void ProduceHitsFromOneEvent(Int_t iEvent);
@@ -36,24 +39,11 @@ private:
     void ProduceHitsFromCurrentEvent();
     void ProduceHitsFromEvents(Int_t startEvent, Int_t endEvent);
 
-    void ProcessSiliconDigitsIntoClusters(StandClustersContainer &clustersContainer);
-    StandSiliconCluster* CreateSiliconCluster(BmnSiliconDigit* siliconDigit);
-    void CalculateLocalCoordinates(StandClustersContainer &clustersContainer);
-    void CalculateLocalCoordinate(StandSiliconCluster* siliconCluster);
-    void ProcessSiliconClustersIntoHits(StandClustersContainer &clustersContainer);
-    void ProcessSiliconClustersIntoHit(StandSiliconCluster* clusterX, StandSiliconCluster* clusterY);
-
     StandIOManager* fIOManager;
+    std::vector<std::shared_ptr<AbstractHitMaker>> fHitMakersCollection;
 
     TString fInputFileName;
     TString fOutputFileName;
-
-    TClonesArray* fInputEventHeader;
-    TClonesArray* fSiliconDigitsArray;
-    TClonesArray* fStrawDigitsArray;
-
-    TClonesArray* fOutputEventHeader;
-    TClonesArray* fSiliconHitsArray; 
 
     ClassDef(StandHitsProducer, 1)
 };

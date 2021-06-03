@@ -3,6 +3,7 @@
 
 set(INCLUDE_DIRECTORIES
  ${BASE_INCLUDE_DIRECTORIES}
+ ${CMAKE_SOURCE_DIR}/common
  ${CMAKE_SOURCE_DIR}/bmndata
  ${CMAKE_SOURCE_DIR}/bmndata/digits
  ${CMAKE_SOURCE_DIR}/decoder
@@ -39,6 +40,6 @@ Set(HEADERS)
 
 Set(LINKDEF DecoderLinkDef.h)
 Set(LIBRARY_NAME Decoder)
-Set(DEPENDENCIES Hist Tree BmnData Gpad)
+Set(DEPENDENCIES BmnData StandCommon Hist Tree Minuit Gpad)
 
 GENERATE_LIBRARY()

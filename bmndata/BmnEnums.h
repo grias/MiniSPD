@@ -36,11 +36,14 @@ enum BmnEventType {
 };
 
 /**
- * \enum Define experimental setup
+ * \enum Define active detectors
  */
-enum BmnSetup {
-    kBMNSETUP = 0,
-    kSRCSETUP = 1,
+enum StandDetector {
+    kTRIGGER,
+    kSILICON,
+    kGEM,
+    kSTRAW,
+    kCALORIMETER
 };
 
 #endif /* BMNENUMS_H_ */

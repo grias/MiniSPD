@@ -51,8 +51,6 @@ BmnTrigRaw2Digit::BmnTrigRaw2Digit(TString mappingFile, TString INLFile, TTree *
 
 BmnStatus BmnTrigRaw2Digit::readMap(TString mappingFile) { // in mapping TQDC channels must appear earlier than TDC
     fMapFileName = TString(getenv("VMCWORKDIR")) + TString("/input/") + mappingFile;
-    printf("Reading Triggers mapping file %s...\n", fMapFileName.Data());
-    //========== read mapping file            ==========//
     fMapFile.open((fMapFileName).Data());
     if (!fMapFile.is_open()) {
         cout << "Error opening map-file (" << fMapFileName << ")!" << endl;
@@ -79,6 +77,8 @@ BmnStatus BmnTrigRaw2Digit::readMap(TString mappingFile) { // in mapping TQDC ch
         fMap.push_back(record);
     }
     fMapFile.close();
+
+    return kBMNSUCCESS;
 }
 
 BmnStatus BmnTrigRaw2Digit::readINLCorrections(TString INLFile) {
@@ -177,6 +177,8 @@ BmnStatus BmnTrigRaw2Digit::FillEvent(TClonesArray *tdc) {
 BmnStatus BmnTrigRaw2Digit::ClearArrays() {
     for (TClonesArray *ar : trigArrays)
         ar->Clear("C");
+
+    return kBMNSUCCESS;
 }
 
 ClassImp(BmnTrigRaw2Digit)

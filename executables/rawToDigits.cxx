@@ -1,11 +1,18 @@
-#include "../bmndata/BmnEnums.h"
+#include "BmnEnums.h"
+#include "BmnRawDataDecoder.h"
 
-//file: raw-file name in macro/data/
-//nEvents: if 0 then decode all events
-//doConvert: convert RAW --> ROOT before decoding or use file converted before
+#include <cstdlib>
+#include <memory>
 
-void standDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kFALSE) {
+int main(int argc, char const *argv[])
+{
+    int run = argc >= 2 ? atoi(argv[1]) : 816;
+    int nEvents = argc >= 3 ? atoi(argv[2]) : 0;
 
+    TString file = Form("mpd_run_Straw_stand_%d.data",run);
+    
+    bool doConvert = false;
+    
     auto decoder = make_shared<BmnRawDataDecoder>(file, nEvents);
 
     decoder->AddDetector(kTRIGGER);
@@ -22,4 +29,6 @@ void standDataToRoot(TString file, Long_t nEvents = 0, Bool_t doConvert = kFALSE
     decoder->InitMaps();
     if (doConvert) decoder->ConvertRawToRoot(); // Convert raw data in .data format into adc-,tdc-, ..., sync-digits in .root format
     decoder->DecodeDataToDigi(); // Decode data into detector-digits using current mappings.
+
+    return 0;
 }

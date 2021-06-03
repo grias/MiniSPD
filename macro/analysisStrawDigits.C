@@ -46,7 +46,7 @@ void CreateHisto()
     for (size_t iStation = 0; iStation < 2; iStation++)
     {
         histName = Form("h1_occup_plane%zu", iStation);
-        histDiscription = Form("Straw occupancies (plane %zu);Channel;", iStation);
+        histDiscription = Form("Straw tracker occupancy (station %zu);Channel;", iStation);
         h1OccupancyArr[iStation] = new TH1I(histName, histDiscription, 64, 0 - 0.5, 64 - 0.5);
         h1OccupancyArr[iStation]->SetLineWidth(3);
         h1OccupancyArr[iStation]->SetLineColor(h1COLORS[iStation]);
@@ -55,14 +55,14 @@ void CreateHisto()
 
         histName = Form("h1_cluster_plane%zu", iStation);
         histDiscription = Form("Straw cluster size (plane %zu);Size;", iStation);
-        h1ClusterArr[iStation] = new TH1I(histName, histDiscription, 64, 0 - 0.5, 64 - 0.5);
+        h1ClusterArr[iStation] = new TH1I(histName, histDiscription, 10, 0 - 0.5, 10 - 0.5);
         h1ClusterArr[iStation]->SetLineWidth(3);
         h1ClusterArr[iStation]->SetLineColor(h1COLORS[iStation]);
-        h1ClusterArr[iStation]->GetXaxis()->SetNdivisions(64);
+        h1ClusterArr[iStation]->GetXaxis()->SetNdivisions(10);
         h1ClusterArr[iStation]->GetXaxis()->SetLabelSize(0.02);
     }
 
-    h1Time = new TH1D("h1_time", "Straw electron drift time;ns", 100, 0, 100);
+    h1Time = new TH1D("h1_time", "TDC signal time;Signal time [ns]", 100, 0, 100);
     h1TimeSum = new TH1D("h1_timeSum", "Drift time sum;ns", 200, 0, 200);
     h1TimeSum2 = new TH2D("h2_timeSum2d", "Drift time;wire1 time [ns]; wire2 time [ns]", 100, 0, 100, 100, 0, 100);
 }
@@ -90,7 +90,7 @@ void Analyze()
         // Dch digits
         Long64_t nDigits = fStrawDigits->GetEntriesFast();
         // printf("NDigits: %lld\n", nDigits);
-        if (nDigits != 4) continue;
+        // if (nDigits != 4) continue;
         for (size_t iDigit = 0; iDigit < nDigits; iDigit++)
         {
             auto strawDigit = (BmnDchDigit *)fStrawDigits->At(iDigit);
@@ -109,7 +109,7 @@ void Analyze()
 
             if (compareToPrev && prevPlane == plane && abs(prevWire - wire) == 1)
             {
-                if (plane == oneChIStation)
+                // if (plane == oneChIStation)
                 // if (abs(prevWire - oneChICh) <= 1 && abs(wire - oneChICh) <= 1)
                 if (true)
                 {
@@ -172,9 +172,9 @@ void Analyze()
             }
         }
 
-        // if (clusterSizePlane0)
+        if (clusterSizePlane0)
         h1ClusterArr[0]->Fill(clusterSizePlane0);
-        // if (clusterSizePlane1)
+        if (clusterSizePlane1)
         h1ClusterArr[1]->Fill(clusterSizePlane1);
     } // end of event
 }
@@ -183,10 +183,10 @@ void DrawHisto(UInt_t runId)
 {
     gSystem->Exec("mkdir -p pictures");
     
-    TCanvas *canvas = new TCanvas("canvas", "", 1200, 800);
+    TCanvas *canvas = new TCanvas("canvas", "", 2000, 1000);
 
-    h1OccupancyArr[0]->Draw("");
-    h1OccupancyArr[1]->Draw("SAME");
+    h1OccupancyArr[1]->Draw("");
+    h1OccupancyArr[0]->Draw("SAME");
     canvas->BuildLegend();
     canvas->SaveAs(Form("pictures/run%04d_digits_straw_occupancy.png", runId));
     canvas->Clear();
@@ -194,7 +194,8 @@ void DrawHisto(UInt_t runId)
     canvas->SetLogy(0);
     h1ClusterArr[0]->Draw();
     h1ClusterArr[1]->Draw("SAME");
-    canvas->BuildLegend();
+    // canvas->BuildLegend();
+    canvas->SetLogy();
     canvas->SaveAs(Form("pictures/run%04d_digits_straw_cluster_size.png", runId));
     canvas->Clear();
 

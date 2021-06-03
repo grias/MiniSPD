@@ -1,9 +1,9 @@
 TTree *fTreeHits;
-TBranch *fBranchSiHits;
-TClonesArray *fSiliconHits;
+TBranch *fBranchGemHits;
+TClonesArray *fGemHits;
 
-const Int_t stationMap[8] = {0, 0, 1, 1, 1, 1, 2, 2};
-const Int_t modMap[8] = {0, 1, 0, 1, 2, 3, 0, 1};
+const Int_t stationMap[2] = {0, 1};
+const Int_t modMap[2] = {0, 0};
 
 map<Int_t, TH2D *> hOccupModuleMap;
 map<Int_t, TH1D *> hOccupModuleXMap;
@@ -11,15 +11,14 @@ vector<TH2D *>hOccupStationVector;
 map<Int_t, TH2D *> hAmplitudesCorrelMap;
 TH1I* hClustersSizeX;
 TH1I* hClustersSizeY;
-array<array<TH1D *, 4>, 3> hClusterAmplitude;
-TH1D* h1Signal[3];
+array<array<TH1D *, 4>, 2> hClusterAmplitude;
 
 void OpenInput(UInt_t runId);
 void CreateHisto();
 void Analyze();
 void DrawHisto(UInt_t runId);
 
-void analysisSiliconHits(UInt_t runId)
+void analysisGemHits(UInt_t runId)
 {
     OpenInput(runId);
     CreateHisto();
@@ -33,10 +32,10 @@ void OpenInput(UInt_t runId)
     TFile *inHitsFile = new TFile(inHitsFileName);
     if (!inHitsFile) return;
     fTreeHits = (TTree *)inHitsFile->Get("cbmsim");
-    fBranchSiHits = fTreeHits->GetBranch("SiliconHits");
-    if (!fBranchSiHits) return;
-    fBranchSiHits->SetAutoDelete(kTRUE);
-    fTreeHits->SetBranchAddress("SiliconHits", &fSiliconHits);
+    fBranchGemHits = fTreeHits->GetBranch("GemHits");
+    if (!fBranchGemHits) return;
+    fBranchGemHits->SetAutoDelete(kTRUE);
+    fTreeHits->SetBranchAddress("GemHits", &fGemHits);
 }
 
 void CreateHisto()
@@ -45,65 +44,48 @@ void CreateHisto()
     TString histDiscription;
     TH2D *hist;
     TH1D *hist1d;
-    for (size_t iHist = 0; iHist < 8; iHist++)
+    for (size_t iHist = 0; iHist < 2; iHist++)
     {
         Int_t key = 10 * stationMap[iHist] + 1 * modMap[iHist];
 
-        Int_t nBins = 75;
+        Int_t nBins = 150;
 
         // occupancy
         histName = Form("h2_station%d_mod%d_occupancy", stationMap[iHist], modMap[iHist]);
         histDiscription = Form("Module occupancy (station %d, module %d);X [mm];Y [mm]", stationMap[iHist], modMap[iHist]);
-        if (key / 10 == 1)
-        {
-            hist = new TH2D(histName, histDiscription, nBins, 0, 63, nBins, -10, 70);
-        }
-        else
-        {
-            hist = new TH2D(histName, histDiscription, nBins, 0, 63, nBins*2, -10, 140);
-        }
+        hist = new TH2D(histName, histDiscription, nBins, -10, 800, nBins, -100, 800);
         hOccupModuleMap.insert({key, hist});
 
         // occupancyX
         histName = Form("h1_station%d_mod%d_occupancy_x", stationMap[iHist], modMap[iHist]);
         histDiscription = Form("Module occupancy X (station %d, module %d);X [mm]; count", stationMap[iHist], modMap[iHist]);
-        hist1d = new TH1D(histName, histDiscription, 700, 0, 63);
+        hist1d = new TH1D(histName, histDiscription, nBins, -100, 800);
         hOccupModuleXMap.insert({key, hist1d});
 
         // Amplitudes
         histName = Form("h2_station%d_mod%d_amplitudes", stationMap[iHist], modMap[iHist]);
-        histDiscription = Form("Amplitudes (station %d, module %d);Cluster X amplitude [ae];Cluster Y amplitude [ae]", stationMap[iHist], modMap[iHist]);
+        histDiscription = Form("Amplitudes (station %d, module %d);Cluster X amplitude [AU];Cluster Y amplitude [AU]", stationMap[iHist], modMap[iHist]);
         hist = new TH2D(histName, histDiscription, 120, 0, 1200, 120, 0, 1200);
         hAmplitudesCorrelMap.insert({key, hist});
     }
 
-    for (int iStation = 0; iStation < 3; iStation++)
+    for (int iStation = 0; iStation < 2; iStation++)
     {
         histName = Form("h2_station%d_occupancy", iStation);
         histDiscription = Form("Station %d occupancy;X [mm];Y [mm]", iStation);
-        hist = new TH2D(histName, histDiscription, 150, 20, 170.1, 150, -170.1, -20);
+        hist = new TH2D(histName, histDiscription, 150, 0, 1000, 150, 200, -500);
         hOccupStationVector.push_back(hist);
     }
     
-    hClustersSizeX = new TH1I("h1_clusters_x", "Cluster size;Number of strips", 15, 1-0.5, 6-0.5);
-    hClustersSizeX->GetXaxis()->SetNdivisions(5);
-    hClustersSizeY = new TH1I("h1_clusters_y", "Cluster size;Number of strips", 15, 1-0.5, 6-0.5);
-    hClustersSizeY->GetXaxis()->SetNdivisions(5);
+    hClustersSizeX = new TH1I("h1_clusters_x", "Cluster size;n strips", 19, 1-0.5, 20-0.5);
+    hClustersSizeY = new TH1I("h1_clusters_y", "Cluster size;n strips", 19, 1-0.5, 20-0.5);
 
-
-    for (int iStation = 0; iStation < 3; iStation++)
+    for (int iStation = 0; iStation < 2; iStation++)
     for (int iClusterSize = 0; iClusterSize < 4; iClusterSize++)
     {
         histName = Form("h2_amplitude_size%d_station%d", iClusterSize+1, iStation);
         histDiscription = Form("Cluster amplitude (station %d);amplitude [AU]", iStation);
-        hClusterAmplitude[iStation][iClusterSize] = new TH1D(histName, histDiscription, 200, 0, 2000);
-    }
-
-    for (int iStation = 0; iStation < 3; iStation++)
-    {
-        histName = Form("h1_amplitude_station%d", iStation);
-        histDiscription = Form("Silicon signal amplitude (station %d);AU;", iStation);
-        h1Signal[iStation] = new TH1D(histName, histDiscription, 80, 0, 800);
+        hClusterAmplitude[iStation][iClusterSize] = new TH1D(histName, histDiscription, 100, 0, 1000);
     }
 
 }
@@ -114,14 +96,13 @@ void Analyze()
     printf("NEvents: %lld\n", nEvents);
     for (Int_t iEv = 0; iEv < nEvents; iEv++)
     {
-        // printf("\nEvent %d\n", iEv);
-        fBranchSiHits->GetEntry(iEv);
-
-        Int_t nHits = fSiliconHits->GetEntriesFast();
-        // printf("nHits: %d\n", nHits);
+        fBranchGemHits->GetEntry(iEv);
+        Int_t nHits = fGemHits->GetEntriesFast();
+        // printf("\nEvent %d\tnHits: %d\n", iEv, nHits);
+        if (nHits > 2) continue;
         for (size_t iHit = 0; iHit < nHits; iHit++)
         {
-            auto siHit = (StandSiliconHit *)fSiliconHits->At(iHit);
+            auto siHit = (StandSiliconHit *)fGemHits->At(iHit);
 
             Int_t station = siHit->GetStation();
             Int_t module = siHit->GetModule();
@@ -132,7 +113,7 @@ void Analyze()
             Double_t clusterSizeX = siHit->GetClusterSizeX();
             Double_t clusterSizeY = siHit->GetClusterSizeY();
 
-            if (!StandSiliconGeoMapper::fIsActiveModule[station][module]) continue;
+            if (!StandGemGeoMapper::fIsActiveModule[station]) continue;
 
             // if (clusterSizeX > 1 || clusterSizeY > 1) continue;
             
@@ -146,15 +127,12 @@ void Analyze()
             hClustersSizeX->Fill(clusterSizeX);
             hClustersSizeY->Fill(clusterSizeY);
 
-            TVector3 globalHitPos = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);
+            TVector3 globalHitPos = StandGemGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);
 
             hOccupStationVector[station]->Fill(globalHitPos.X(), globalHitPos.Y());
 
             hClusterAmplitude[station][clusterSizeX-1]->Fill(amplitudeX);
             hClusterAmplitude[station][clusterSizeY-1]->Fill(amplitudeY);
-
-            h1Signal[station]->Fill(abs(amplitudeX));
-            h1Signal[station]->Fill(abs(amplitudeY));
             
             // siHit->Print();
         } // end of hit
@@ -170,17 +148,10 @@ void DrawHisto(UInt_t runId)
         auto key = pair.first;
         auto hist = pair.second;
 
-        TCanvas *canvas;
-        if (key / 10 == 1)
-        {
-            canvas = new TCanvas(Form("canvas%d", key), "", 630, 630);
-        }
-        else
-        {
-            canvas = new TCanvas(Form("canvas%d", key), "", 630, 1260);
-        }
+        auto canvas = new TCanvas(Form("canvas%d", key), "", 630, 630);
+
         hist->Draw("COLZ");
-        canvas->SaveAs(Form("pictures/run%04d_hits_si_occupancy_mod%02d.png", runId, key));
+        canvas->SaveAs(Form("pictures/run%04d_hits_gem_occupancy_mod%02d.png", runId, key));
         delete canvas;
     }
 
@@ -189,10 +160,9 @@ void DrawHisto(UInt_t runId)
         auto key = pair.first;
         auto hist = pair.second;
 
-        TCanvas *canvas;
-        canvas = new TCanvas(Form("canvas%d", key), "", 630, 630);
+        auto canvas = new TCanvas(Form("canvas%d", key), "", 630, 630);
         hist->Draw("");
-        canvas->SaveAs(Form("pictures/run%04d_hits_si_occupancy_x_mod%02d.png", runId, key));
+        canvas->SaveAs(Form("pictures/run%04d_hits_gem_occupancy_x_mod%02d.png", runId, key));
         delete canvas;
     }
 
@@ -201,57 +171,42 @@ void DrawHisto(UInt_t runId)
         auto key = pair.first;
         auto hist = pair.second;
 
-        TCanvas *canvas = new TCanvas(Form("canvas%d", key), "", 630, 630);
+        auto canvas = new TCanvas(Form("canvas%d", key), "", 630, 630);
         hist->Draw("COLZ");
-        canvas->SaveAs(Form("pictures/run%04d_hits_si_amplitude_correlation_mod%02d.png", runId, key));
+        canvas->SaveAs(Form("pictures/run%04d_hits_gem_amplitude_correlation_mod%02d.png", runId, key));
         delete canvas;
     }
 
     Int_t iStation = 0;
     for (auto &&hist : hOccupStationVector)
     {
-        TCanvas *canvas = new TCanvas(Form("canvas%d", iStation), "", 630, 630);
+        auto canvas = new TCanvas(Form("canvas%d", iStation), "", 630, 630);
         hist->Draw("COL");
-        canvas->SaveAs(Form("pictures/run%04d_hits_si_occupancy_station%d.png", runId, iStation++));
+        canvas->SaveAs(Form("pictures/run%04d_hits_gem_occupancy_station%d.png", runId, iStation++));
         delete canvas;
     }
 
-    TCanvas *canvas = new TCanvas("canvas", "", 800, 600);
-    hClustersSizeX->SetLineWidth(3);
+    auto canvas = new TCanvas("canvas", "", 600, 800);
     hClustersSizeX->SetLineColor(2);
-    hClustersSizeY->SetLineWidth(3);
     hClustersSizeY->SetLineColor(9);
     hClustersSizeX->Draw("HIST");
     hClustersSizeY->Draw("SAME HIST");
-    canvas->SetLogy(kTRUE);
-    canvas->SaveAs(Form("pictures/run%04d_hits_si_cluster_size.png", runId));
+    canvas->SetLogy();
+    canvas->SaveAs(Form("pictures/run%04d_hits_gem_cluster_size.png", runId));
     canvas->SetLogy(kFALSE);
     canvas->Clear();
 
     array<Int_t, 4> colors {2, 9, 8, 6};
-    for (int iStation = 0; iStation < 3; iStation++)
+    for (int iStation = 0; iStation < 2; iStation++)
     {
         for (int iClusterSize = 0; iClusterSize < 4; iClusterSize++)
         {
             hClusterAmplitude[iStation][iClusterSize]->SetLineColor(colors[iClusterSize]);
             hClusterAmplitude[iStation][iClusterSize]->Draw(!iClusterSize?"HIST":"HIST SAME");
         }
-        canvas->SetLogy(kTRUE);
-        canvas->SaveAs(Form("pictures/run%04d_hits_si_amplitude_station%d.png", runId, iStation));
-        canvas->SetLogy(kFALSE);
+        // canvas->SetLogy();
+        canvas->SaveAs(Form("pictures/run%04d_hits_gem_amplitude_station%d.png", runId, iStation));
+        // canvas->SetLogy(kFALSE);
         canvas->Clear();
     }
-
-    auto cSignalAll = new TCanvas(Form("c_signalAll"), "Silicon signal", 800, 600);
-    h1Signal[2]->SetLineWidth(3);
-    h1Signal[0]->SetLineWidth(3);
-    h1Signal[1]->SetLineWidth(3);
-    h1Signal[2]->SetLineColor(9);
-    h1Signal[0]->SetLineColor(2);
-    h1Signal[1]->SetLineColor(1);
-    h1Signal[2]->Draw("");
-    h1Signal[0]->Draw("SAME");
-    h1Signal[1]->Draw("SAME");
-    // cSignalAll->BuildLegend();
-    cSignalAll->SaveAs(Form("pictures/run%04d_hits_si_amplitude_all.png", runId));
 }
