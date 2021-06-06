@@ -48,8 +48,6 @@ void StandHitsProducer::ProduceHitsFromEvents(UInt_t startEvent, UInt_t endEvent
 
 void StandHitsProducer::ProduceHitsFromCurrentEvent()
 {
-    // std::cout << "-I-<StandHitsProducer::ProduceHitsFromCurrentEvent> Processing event " << iEvent << std::endl;
-
     for (auto &&hitMaker : fHitMakersCollection)
     {
         hitMaker->ProduceHitsFromCurrentEvent();
@@ -58,8 +56,6 @@ void StandHitsProducer::ProduceHitsFromCurrentEvent()
 
 void StandHitsProducer::OpenInputOutputFiles()
 {
-    std::cout << "-I-<StandHitsProducer::OpenInputOutputFiles>" << std::endl;
-
     ConfigureInput();
     ConfigureOutput();
 
@@ -71,7 +67,7 @@ void StandHitsProducer::OpenInputOutputFiles()
 
 void StandHitsProducer::ConfigureInput()
 {
-    std::cout << "-I-<StandHitsProducer::ConfigureInput>" << std::endl;
+    std::cout << "-I-<StandHitsProducer::ConfigureInput> Filename: "<< fInputFileName << std::endl;
 
     fIOManager->SetInputFileName(fInputFileName);
 
@@ -83,7 +79,7 @@ void StandHitsProducer::ConfigureInput()
 
 void StandHitsProducer::ConfigureOutput()
 {
-    std::cout << "-I-<StandHitsProducer::ConfigureOutput> Name: "<< fOutputFileName << std::endl;
+    std::cout << "-I-<StandHitsProducer::ConfigureOutput> Filename: "<< fOutputFileName << std::endl;
 
     fIOManager->SetOutputFileName(fOutputFileName);
 
