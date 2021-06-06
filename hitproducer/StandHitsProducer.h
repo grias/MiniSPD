@@ -25,7 +25,7 @@ public:
     void AddHitMaker(std::shared_ptr<AbstractHitMaker> hitMaker) { fHitMakersCollection.push_back(hitMaker); }
 
     void ProduceHitsFromAllEvents();
-    void ProduceHitsFromOneEvent(Int_t iEvent);
+    void ProduceHitsFromOneEvent(UInt_t iEvent);
 
 private:
     void OpenInputOutputFiles();
@@ -37,7 +37,9 @@ private:
     void GetOutputData();
 
     void ProduceHitsFromCurrentEvent();
-    void ProduceHitsFromEvents(Int_t startEvent, Int_t endEvent);
+    void ProduceHitsFromEvents(UInt_t startEvent, UInt_t endEvent);
+
+    Bool_t IsEventsExist(UInt_t startEvent, UInt_t endEvent);
 
     StandIOManager* fIOManager;
     std::vector<std::shared_ptr<AbstractHitMaker>> fHitMakersCollection;

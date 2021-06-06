@@ -85,7 +85,7 @@ void StandIOManager::FinishOutput()
     fIsOutputInitialized = kFALSE;
 }
 
-void StandIOManager::StartEvent(Int_t nEvent)
+void StandIOManager::StartEvent(UInt_t nEvent)
 {
     ClearArrays();
     ReadInputEvent(nEvent);

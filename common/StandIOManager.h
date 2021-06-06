@@ -30,7 +30,7 @@ public:
     void FinishInput();
     void FinishOutput();
 
-    void StartEvent(Int_t nEvent);
+    void StartEvent(UInt_t nEvent);
     void EndEvent();
     
     TClonesArray* GetInputDataArray(TString className);
@@ -41,7 +41,7 @@ public:
     void SetVerboseLevel(Int_t verbose) { fVerbose = verbose; }
 
 private:
-    void ReadInputEvent(Int_t nEvent) { fInputTree->GetEntry(nEvent); }
+    void ReadInputEvent(UInt_t nEvent) { fInputTree->GetEntry(nEvent); }
     void FillEvent() { fOutputTree->Fill(); }
     void ClearArrays();
     void WriteTreeIntoOutputFile() { fOutputTree->Write(); }
