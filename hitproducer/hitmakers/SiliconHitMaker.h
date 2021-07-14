@@ -19,6 +19,7 @@ private:
     void CalculateLocalCoordinate(StandSiliconCluster* cluster);
     void ProcessClustersIntoHits(StandClustersContainer &clustersContainer);
     void ProcessClustersIntoHit(StandSiliconCluster* clusterX, StandSiliconCluster* clusterY);
+    Bool_t IsHitInSensitiveRange(Int_t station, Double_t localY);
 
     ClassDef(SiliconHitMaker, 1);
 

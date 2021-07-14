@@ -15,12 +15,16 @@ link_directories( ${LINK_DIRECTORIES})
 
 set(SRCS
     StandSiliconHit.cxx
+    StandGemHit.cxx
     StandSiliconTrack.cxx
+    StandTrack.cxx
 )
 
 set(HEADERS
     StandSiliconHit.h
+    StandGemHit.h
     StandSiliconTrack.h
+    StandTrack.h
 )
 
 

@@ -1,6 +1,9 @@
 TTree *fTreeHits;
 TBranch *fBranchGemHits;
 TClonesArray *fGemHits;
+TTree *fTreeTracks;
+TBranch *fBranchSiTracks;
+TClonesArray *fSiliconTracks;
 
 const Int_t stationMap[2] = {0, 1};
 const Int_t modMap[2] = {0, 0};
@@ -12,6 +15,7 @@ map<Int_t, TH2D *> hAmplitudesCorrelMap;
 TH1I* hClustersSizeX;
 TH1I* hClustersSizeY;
 array<array<TH1D *, 4>, 2> hClusterAmplitude;
+array<TH2D *, 2> hResVsX;
 
 void OpenInput(UInt_t runId);
 void CreateHisto();
@@ -28,6 +32,17 @@ void analysisGemHits(UInt_t runId)
 
 void OpenInput(UInt_t runId)
 {
+    // --- Input Si tracks -----------------------------------------------------------------
+    TString inTracksFileName = Form("data/stand_run%04d_tracks.root", runId);
+    TFile *inTracksFile = new TFile(inTracksFileName);
+    if (!inTracksFile) return;
+    fTreeTracks = (TTree *)inTracksFile->Get("cbmsim");
+    fBranchSiTracks = fTreeTracks->GetBranch("SiliconTracks");
+    if (!fBranchSiTracks) return;
+    fBranchSiTracks->SetAutoDelete(kTRUE);
+    fTreeTracks->SetBranchAddress("SiliconTracks", &fSiliconTracks);
+
+    // --- Input GEM hits -----------------------------------------------------------------
     TString inHitsFileName = Form("data/stand_run%04d_hits.root", runId);
     TFile *inHitsFile = new TFile(inHitsFileName);
     if (!inHitsFile) return;
@@ -88,6 +103,15 @@ void CreateHisto()
         hClusterAmplitude[iStation][iClusterSize] = new TH1D(histName, histDiscription, 100, 0, 1000);
     }
 
+    for (Int_t iHist = 0; iHist < 2; iHist++)
+    {
+        histName = Form("h2_station%d_residuals_rxx", iHist);
+        histDiscription = Form("ResX vs X (station %d); res X [mm]; X [mm]", iHist);
+        hResVsX[iHist] = new TH2D(histName, histDiscription, 300, -2.5, 2.5, 20, 180, 380);
+        // hResVsX[iHist] = new TH2D(histName, histDiscription, 500, -10, 10, 20, 180, 380);
+        // hResVsX[iHist] = new TH2D(histName, histDiscription, 100, -0.5, 0.5, 10, 180, 380);
+    }
+
 }
 
 void Analyze()
@@ -97,26 +121,27 @@ void Analyze()
     for (Int_t iEv = 0; iEv < nEvents; iEv++)
     {
         fBranchGemHits->GetEntry(iEv);
+        fBranchSiTracks->GetEntry(iEv);
         Int_t nHits = fGemHits->GetEntriesFast();
+
         // printf("\nEvent %d\tnHits: %d\n", iEv, nHits);
         if (nHits > 2) continue;
         for (size_t iHit = 0; iHit < nHits; iHit++)
         {
-            auto siHit = (StandSiliconHit *)fGemHits->At(iHit);
+            auto gemHit = (StandSiliconHit *)fGemHits->At(iHit);
 
-            Int_t station = siHit->GetStation();
-            Int_t module = siHit->GetModule();
-            Double_t localX = siHit->GetLocalX();
-            Double_t localY = siHit->GetLocalY();
-            Double_t amplitudeX = std::abs(siHit->GetAmplitudeX());
-            Double_t amplitudeY = std::abs(siHit->GetAmplitudeY());
-            Double_t clusterSizeX = siHit->GetClusterSizeX();
-            Double_t clusterSizeY = siHit->GetClusterSizeY();
+            Int_t station = gemHit->GetStation();
+            Int_t module = gemHit->GetModule();
+            Double_t localX = gemHit->GetLocalX();
+            Double_t localY = gemHit->GetLocalY();
+            Double_t amplitudeX = std::abs(gemHit->GetAmplitudeX());
+            Double_t amplitudeY = std::abs(gemHit->GetAmplitudeY());
+            Double_t clusterSizeX = gemHit->GetClusterSizeX();
+            Double_t clusterSizeY = gemHit->GetClusterSizeY();
 
             if (!StandGemGeoMapper::fIsActiveModule[station]) continue;
 
             // if (clusterSizeX > 1 || clusterSizeY > 1) continue;
-            
 
             Int_t key = 10 * station + 1 * module;
             hOccupModuleMap.find(key)->second->Fill(localX, localY);
@@ -134,7 +159,25 @@ void Analyze()
             hClusterAmplitude[station][clusterSizeX-1]->Fill(amplitudeX);
             hClusterAmplitude[station][clusterSizeY-1]->Fill(amplitudeY);
             
-            // siHit->Print();
+        } // end of hit
+
+        // Residuals calculation    
+        if (!fSiliconTracks->GetEntriesFast()) continue;
+        auto siTrack = (StandSiliconTrack *)fSiliconTracks->At(0);
+        auto par0 = siTrack->GetParameterX(0);
+        auto par1 = siTrack->GetParameterX(1);
+        for (size_t iHit = 0; iHit < nHits; iHit++)
+        {
+            auto gemHit = (StandSiliconHit *)fGemHits->At(iHit);
+            Int_t station = gemHit->GetStation();
+            Int_t module = gemHit->GetModule();
+            Double_t localX = gemHit->GetLocalX();
+            Double_t localY = gemHit->GetLocalY();
+            TVector3 globalHitPos = StandGemGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);
+            Double_t trackX = globalHitPos.Z()*par1 + par0;
+            Double_t residX = globalHitPos.X() - trackX;
+            // printf("St: %d, ResidX: %f\n", station, residX);
+            hResVsX[station]->Fill(residX, localX);
         } // end of hit
     } // end of event
 }
@@ -142,6 +185,8 @@ void Analyze()
 void DrawHisto(UInt_t runId)
 {
     gSystem->Exec("mkdir -p pictures");
+
+    gStyle->SetOptFit();
 
     for (auto &&pair : hOccupModuleMap)
     {
@@ -208,5 +253,65 @@ void DrawHisto(UInt_t runId)
         canvas->SaveAs(Form("pictures/run%04d_hits_gem_amplitude_station%d.png", runId, iStation));
         // canvas->SetLogy(kFALSE);
         canvas->Clear();
+    }
+
+    // 2D histo
+    auto cResVsX = new TCanvas("c_resvsx", "", 800, 800);
+    for (size_t iHist = 0; iHist < 2; iHist++)
+    {
+        hResVsX[iHist]->Draw("COL");
+        cResVsX->SaveAs(Form("pictures/run%04d_hits_gem_resxvsx_st%zu.png", runId, iHist));
+    }
+
+    // profile
+    for (size_t iHist = 0; iHist < 2; iHist++)
+    {
+        auto profile = hResVsX[iHist]->ProfileY();
+        profile->GetYaxis()->SetTitle("Res X [mm]");
+        profile->Draw();
+        cResVsX->SaveAs(Form("pictures/run%04d_hits_gem_resxvsx_st%zu_profile.png", runId, iHist));
+    }
+
+    // projection
+    TF1 *fitFun = new TF1("gausWithBackground","pol0(0)+gaus(1)",-0.2,0.2);
+    fitFun->SetParName(0,"Base line");
+    fitFun->SetParName(1,"Height");
+    fitFun->SetParName(2,"Mean");
+    fitFun->SetParName(3,"Sigma");
+    fitFun->SetParameters(0,1,0,0.2);
+
+    TF1 *gausFixMp = new TF1("gausWithFixedMP","gaus(0)",-0.01,0.5);
+    gausFixMp->SetParName(0,"Height");
+    gausFixMp->SetParName(1,"Mean");
+    gausFixMp->SetParName(2,"Sigma");
+    gausFixMp->SetParameters(1,0,0.2);
+    gausFixMp->FixParameter(1, 0);
+    
+    // cResVsX->SetLogy(kTRUE);
+
+    array<Double_t, 8> fitMeanArray {0, 0, 0, 0, 0, 0, 0, 0};
+    array<Double_t, 8> fitSigmaArray {0, 0, 0, 0, 0, 0, 0, 0};
+    for (size_t iHist = 0; iHist < 2; iHist++)
+    {
+        auto projection = hResVsX[iHist]->ProjectionX();
+        // auto fitRes = projection->Fit("pol0", "SCQ+");
+        // auto fitRes = projection->Fit("gaus", "SQ+", "", -0.2, 0.2);
+        auto fitRes = projection->Fit("gaus", "SQ+", "");
+        // auto fitRes = projection->Fit(fitFun, "SQ", "", -0.2, 0.2);
+        
+        if ((Int_t) fitRes == 0)
+        {
+            fitMeanArray[iHist] = fitRes->Parameter(1);
+            fitSigmaArray[iHist] = fitRes->Parameter(2);
+        }
+        projection->Draw();
+        cResVsX->SaveAs(Form("pictures/run%04d_hits_gem_resxvsx_st%zu_projection.png", runId, iHist));
+    }
+
+    printf("\nFit results:\n");
+    printf("Module\tMean [mkm]\tSigma [mkm]\n");
+    for (size_t iHist = 0; iHist < 2; iHist++)
+    {
+        printf("%zu\t%f\t%f\n", iHist, fitMeanArray[iHist]*1000, fitSigmaArray[iHist]*1000);
     }
 }

@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-Double_t StandGemGeoMapper::fPitch[2] = {0.8, 0.8};
+Double_t StandGemGeoMapper::fPitch[2] = {0.792, 0.8};
 
 Double_t StandGemGeoMapper::fFirstStripOffset[2] = {0, 0.26};
 
@@ -11,7 +11,8 @@ Int_t StandGemGeoMapper::fIfReverseModuleY[2] = {1, 1};
 
 Int_t StandGemGeoMapper::fIsActiveModule[2] = {1, 1};
 
-Double_t StandGemGeoMapper::fStationsRotation[2] = {0.0, 0.0}; /* deg */
+Double_t StandGemGeoMapper::fStationsRotation[2] = {0., 0.}; /* deg */
+Double_t StandGemGeoMapper::fStationsCenter[2][2] = {{260., 50.}, {280., 80.}}; /* mm */
 
 Double_t StandGemGeoMapper::fStationCSToGlobalCS[2][3] =
 {
@@ -21,8 +22,8 @@ Double_t StandGemGeoMapper::fStationCSToGlobalCS[2][3] =
 
 Double_t StandGemGeoMapper::fStationPositionCorrection[2][3] =
 {
-    {0, 0, 0},
-    {0, 0, 0}
+    {-2.756, 0, 0},
+    {2.985, 0, 0}
 }; /* mm */
 
 Double_t StandGemGeoMapper::CalculateLocalCoordinateForStrip(Int_t station, Int_t module, Int_t side, Int_t strip)
@@ -41,10 +42,13 @@ TVector3 StandGemGeoMapper::CalculateGlobalCoordinatesForHit(Int_t station, Int_
 
     TVector3 hit(localX, localY, 0);
 
-    hit.RotateZ(fStationsRotation[station]*degToRad);
-
     hit += TVector3(fStationCSToGlobalCS[station][0], fStationCSToGlobalCS[station][1], fStationCSToGlobalCS[station][2]);
     hit += TVector3(fStationPositionCorrection[station][0], fStationPositionCorrection[station][1], fStationPositionCorrection[station][2]);
+
+    TVector3 toCenter(-fStationsCenter[station][0], -fStationsCenter[station][1], 0.);
+    // hit -= toCenter;
+    hit.RotateZ(fStationsRotation[station]*degToRad);
+    // hit += toCenter;
 
     return hit;
 }

@@ -11,7 +11,7 @@
 #define GEM_N_MODULES                   1
 #define GEM_MAX_CLUSTER_SIZE            3
 #define GEM_TRIGGER_ZONE_MIN_STRIP    200
-#define GEM_TRIGGER_ZONE_MAX_STRIP    500
+#define GEM_TRIGGER_ZONE_MAX_STRIP    520
 
 class GemHitMaker : public AbstractHitMaker
 {

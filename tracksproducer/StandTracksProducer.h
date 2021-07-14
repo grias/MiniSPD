@@ -13,18 +13,29 @@ using std::vector;
 
 const TString kINPUTTREENAME = "cbmsim";
 
+enum HitType { kUNDEF, kSILICON, kGEM };
+
 struct HitWrapper
 {
     HitWrapper(Int_t hitNumber, Int_t hitStation)
     {
-
         station = hitStation;
         nHit = hitNumber;
+        type = kUNDEF;
     }
+    HitWrapper(Int_t hitNumber, Int_t hitStation, HitType hitType)
+    {
+        station = hitStation;
+        nHit = hitNumber;
+        type = hitType;
+    }
+
+    HitWrapper() {}
     Int_t nHit;
     Int_t station;
     Int_t module;
     TVector3 globalPosition;
+    HitType type;
 };
 
 struct TrackCandidate

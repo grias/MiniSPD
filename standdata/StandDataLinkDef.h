@@ -5,6 +5,8 @@
 #pragma link off all functions;
 
 #pragma link C++ class StandSiliconHit+;
+#pragma link C++ class StandGemHit+;
 #pragma link C++ class StandSiliconTrack+;
+#pragma link C++ class StandTrack+;
 
 #endif

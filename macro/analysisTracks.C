@@ -2,7 +2,7 @@ TTree *fTreeTracks;
 TTree *fTreeHits;
 TBranch *fBranchTracks;
 TBranch *fBranchSiHits;
-TClonesArray *fSiliconTracks;
+TClonesArray *fTracks;
 TClonesArray *fSiliconHits;
 
 const Double_t degToRad = 3.14159265359 / 180.;
@@ -26,7 +26,7 @@ void CreateHisto();
 void Analyze();
 void DrawHisto(UInt_t runId);
 
-void analysisSiliconTracks(Int_t runId)
+void analysisTracks(Int_t runId)
 {
     OpenInput(runId);
     CreateHisto();
@@ -41,10 +41,10 @@ void OpenInput(UInt_t runId)
     TFile *inTracksFile = new TFile(inTracksFileName);
     if (!inTracksFile) return;
     fTreeTracks = (TTree *)inTracksFile->Get("cbmsim");
-    fBranchTracks = fTreeTracks->GetBranch("SiliconTracks");
+    fBranchTracks = fTreeTracks->GetBranch("Tracks");
     if (!fBranchTracks) return;
     fBranchTracks->SetAutoDelete(kTRUE);
-    fTreeTracks->SetBranchAddress("SiliconTracks", &fSiliconTracks);
+    fTreeTracks->SetBranchAddress("Tracks", &fTracks);
 
     // --- Input Hits -----------------------------------------------------------------
     TString inHitsFileName = Form("data/stand_run%04d_hits.root", runId);
@@ -100,24 +100,24 @@ void Analyze()
     printf("NEvents: %lld\n", nEvents);
     for (Int_t iEv = 0; iEv < nEvents; iEv++)
     {
-        printf("Event %d\n", iEv);
+        // printf("Event %d\n", iEv);
         fBranchTracks->GetEntry(iEv);
         fBranchSiHits->GetEntry(iEv);
 
-        if (!fSiliconTracks->GetEntriesFast()) continue;
+        if (!fTracks->GetEntriesFast()) continue;
 
-        auto siTrack = (StandSiliconTrack *)fSiliconTracks->At(0);
+        auto track = (StandTrack *)fTracks->At(0);
 
         // --- Cuts -----------------------------------------------------------
 
-        // if (siTrack->GetChiSquare(0) > 0.1) continue;
-        // if (siTrack->GetChiSquare(0) < 0.5) continue;
+        // if (track->GetChiSquare(0) > 0.1) continue;
+        // if (track->GetChiSquare(0) < 0.5) continue;
 
         // // pick only tracks with clusters of size 1
         // Bool_t isBigClusterPresent = false;
         // for (size_t iHit = 0; iHit < 3; iHit++)
         // {
-        //     Int_t hitId = siTrack->GetHitId(iHit);
+        //     Int_t hitId = track->GetHitId(iHit);
         //     auto siHit = (StandSiliconHit *)fSiliconHits->At(hitId);
 
         //     Int_t clusterSizeX = siHit->GetClusterSizeX();
@@ -132,46 +132,47 @@ void Analyze()
         // if (isBigClusterPresent) continue;
 
         // pick only tracks with clusters of size 1 at center station
-        Bool_t isBigClusterPresent = false;
-        Int_t hitId = siTrack->GetHitId(1);
-        auto siHit = (StandSiliconHit *)fSiliconHits->At(hitId);
-        Int_t clusterSizeX = siHit->GetClusterSizeX();
-        Int_t clusterSizeY = siHit->GetClusterSizeY();
-        if (clusterSizeX > 1)
-        {
-            isBigClusterPresent = true;
-        }
+        // Bool_t isBigClusterPresent = false;
+        // Int_t hitId = track->GetHitId(1);
+        // auto siHit = (StandSiliconHit *)fSiliconHits->At(hitId);
+        // Int_t clusterSizeX = siHit->GetClusterSizeX();
+        // Int_t clusterSizeY = siHit->GetClusterSizeY();
+        // if (clusterSizeX > 1)
+        // {
+        //     isBigClusterPresent = true;
+        // }
         // if (isBigClusterPresent) continue;
 
         // pick only tracks ~ parallel to Z axis
         Double_t angleCut = 1; /* deg */
-        if (abs(siTrack->GetParameterX(1)) > tan(angleCut*degToRad)) continue;
+        // if (abs(track->GetParameterX(1)) > tan(angleCut*degToRad)) continue;
 
-        // if (goodTracks > 100) continue;
 
         goodTracks++;
         // --- Data processing -----------------------------------------------------------
 
-        for (size_t iStation = 0; iStation < 3; iStation++)
+        if (goodTracks > 5) continue;
+
+        for (size_t iStation = 0; iStation < 5; iStation++)
         {
-            cout<<siTrack->GetModule(iStation)<<"\t";
+            cout<<track->GetModule(iStation)<<"\t";
         }
         cout<<endl;
 
         for (size_t iStation = 0; iStation < 3; iStation++)
         {
-            Double_t hitPosX = siTrack->GetHitPositionX(iStation);
-            Double_t hitPosY = siTrack->GetHitPositionY(iStation);
+            Double_t hitPosX = track->GetHitPositionX(iStation);
+            Double_t hitPosY = track->GetHitPositionY(iStation);
             hStationOccups[iStation]->Fill(hitPosX, hitPosY);
         }
 
         Double_t sigma = 0;
         for (size_t iStation = 0; iStation < 3; iStation++)
         {
-            Int_t module = siTrack->GetModule(iStation);
-            Double_t hitX = siTrack->GetHitPositionX(iStation);
-            Double_t residX = siTrack->GetResidualX(iStation);
-            Int_t hitId = siTrack->GetHitId(iStation);
+            Int_t module = track->GetModule(iStation);
+            Double_t hitX = track->GetHitPositionX(iStation);
+            Double_t residX = track->GetResidualX(iStation);
+            Int_t hitId = track->GetHitId(iStation);
             auto siHit = (StandSiliconHit *)fSiliconHits->At(hitId);
 
             Int_t histNumber = fStationModToHistMap[iStation][module];
@@ -182,18 +183,20 @@ void Analyze()
         sigma = sqrt(sigma);
         hTrackResolutionX->Fill(sigma);
 
-        hCoordCorrelX->Fill(siTrack->GetHitPositionX(0), siTrack->GetHitPositionX(2));
+        hCoordCorrelX->Fill(track->GetHitPositionX(0), track->GetHitPositionX(2));
 
-        Double_t trackAngleX = atan(siTrack->GetParameterX(1))*radToDeg;
+        Double_t trackAngleX = atan(track->GetParameterX(1))*radToDeg;
         hTrackAngleX->Fill(trackAngleX);
 
-        Double_t hitPosX[3] = {siTrack->GetHitPositionX(0), siTrack->GetHitPositionX(1), siTrack->GetHitPositionX(2)};
-        Double_t hitPosY[3] = {siTrack->GetHitPositionY(0), siTrack->GetHitPositionY(1), siTrack->GetHitPositionY(2)};
-        Double_t hitPosZ[3] = {siTrack->GetHitPositionZ(0), siTrack->GetHitPositionZ(1), siTrack->GetHitPositionZ(2)};
+        Double_t hitPosX[5] = {track->GetHitPositionX(0), track->GetHitPositionX(3), track->GetHitPositionX(1), track->GetHitPositionX(2), track->GetHitPositionX(4)};
+        Double_t hitPosY[5] = {track->GetHitPositionY(0), track->GetHitPositionY(3), track->GetHitPositionY(1), track->GetHitPositionY(2), track->GetHitPositionY(4)};
+        Double_t hitPosZ[5] = {track->GetHitPositionZ(0), track->GetHitPositionZ(3), track->GetHitPositionZ(1), track->GetHitPositionZ(2), track->GetHitPositionZ(4)};
 
-        TGraph *graphZX = new TGraph(3, hitPosZ, hitPosX);
-        TGraph *graphZY = new TGraph(3, hitPosZ, hitPosY);
-        TGraph *graphXY = new TGraph(3, hitPosX, hitPosY);
+        
+
+        TGraph *graphZX = new TGraph(5, hitPosZ, hitPosX);
+        TGraph *graphZY = new TGraph(5, hitPosZ, hitPosY);
+        TGraph *graphXY = new TGraph(5, hitPosX, hitPosY);
 
         HitsZX->Add(graphZX, "C*");
         HitsZY->Add(graphZY, "C*");

@@ -3,6 +3,8 @@
 #include "StandSiliconHit.h"
 #include "StandSiliconGeoMapper.h"
 
+#include "TVector3.h"
+
 SiliconHitMaker::SiliconHitMaker():AbstractHitMaker("SILICON", "SiliconHits", "BmnSiliconDigit", "StandSiliconHit")
 {
 }
@@ -129,13 +131,17 @@ void SiliconHitMaker::ProcessClustersIntoHit(StandSiliconCluster* clusterX, Stan
     Int_t module = clusterX->GetModule();
     Double_t localX = clusterX->GetLocalCoordinate();
     Double_t localY = StandSiliconGeoMapper::CalculateLocalY(localX, clusterY->GetLocalCoordinate(), station);
-    // std::cout<<clusterY->GetLocalCoordinate() - clusterX->GetLocalCoordinate()<<"\t"<<localY<<std::endl;
 
-    if (StandSiliconGeoMapper::IsInSensitiveRange(clusterX->GetStation(), localY))
-    {
-        StandSiliconHit* hit = new((*fHitsArray)[fHitsArray->GetEntriesFast()]) StandSiliconHit(station, module, localX, localY);
-        hit->SetAmplitudes(clusterX->GetAmplitude(), clusterY->GetAmplitude());
-        hit->SetClustersSizes(clusterX->GetClusterSize(), clusterY->GetClusterSize());
-        // hit->Print();
-    }
+    if (!IsHitInSensitiveRange(station, localY)) return;
+
+    StandSiliconHit* hit = new((*fHitsArray)[fHitsArray->GetEntriesFast()]) StandSiliconHit(station, module, localX, localY);
+    hit->SetAmplitudes(clusterX->GetAmplitude(), clusterY->GetAmplitude());
+    hit->SetClustersSizes(clusterX->GetClusterSize(), clusterY->GetClusterSize());
+    TVector3 globalHitPos = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);
+    hit->SetGlobalCoordinates(globalHitPos.X(), globalHitPos.Y(), globalHitPos.Z());
+}
+
+Bool_t SiliconHitMaker::IsHitInSensitiveRange(Int_t station, Double_t localY)
+{
+    return StandSiliconGeoMapper::IsInSensitiveRange(station, localY);
 }

@@ -3,6 +3,8 @@
 #include "StandSiliconHit.h"
 #include "StandGemGeoMapper.h"
 
+#include "TVector3.h"
+
 GemHitMaker::GemHitMaker():AbstractHitMaker("GEM", "GemHits", "BmnGemStripDigit", "StandSiliconHit")
 {
 }
@@ -21,7 +23,7 @@ void GemHitMaker::ProduceHitsFromCurrentEvent()
 
 void GemHitMaker::ProcessDigitsIntoClusters(StandClustersContainer &clustersContainer)
 {
-    Int_t nDigits = fDigitsArray->GetEntriesFast();
+    UInt_t nDigits = fDigitsArray->GetEntriesFast();
 
     for (size_t iDigit = 0; iDigit < nDigits; iDigit++)
     {
@@ -115,12 +117,13 @@ void GemHitMaker::ProcessClustersIntoHit(StandSiliconCluster* clusterX, StandSil
     Double_t localX = clusterX->GetLocalCoordinate();
     Double_t localY = StandGemGeoMapper::CalculateLocalY(localX, clusterY->GetLocalCoordinate(), station);
 
-    if (IsHitInSensitiveRange(localY))
-    {
-        StandSiliconHit* hit = new((*fHitsArray)[fHitsArray->GetEntriesFast()]) StandSiliconHit(station, module, localX, localY);
-        hit->SetAmplitudes(clusterX->GetAmplitude(), clusterY->GetAmplitude());
-        hit->SetClustersSizes(clusterX->GetClusterSize(), clusterY->GetClusterSize());
-    }
+    if (!IsHitInSensitiveRange(localY)) return;
+
+    StandSiliconHit* hit = new((*fHitsArray)[fHitsArray->GetEntriesFast()]) StandSiliconHit(station, module, localX, localY);
+    hit->SetAmplitudes(clusterX->GetAmplitude(), clusterY->GetAmplitude());
+    hit->SetClustersSizes(clusterX->GetClusterSize(), clusterY->GetClusterSize());
+    TVector3 globalHitPos = StandGemGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);
+    hit->SetGlobalCoordinates(globalHitPos.X(), globalHitPos.Y(), globalHitPos.Z());
 }
 
 Double_t GemHitMaker::CalculateCenterOfMass(vector<pair<Double_t, Double_t>> coordinateAmplitudePairs)
