@@ -17,8 +17,8 @@ int main(int argc, char const *argv[])
 
     decoder->AddDetector(kTRIGGER);
     decoder->AddDetector(kSILICON);
-    decoder->AddDetector(kGEM);
-    decoder->AddDetector(kSTRAW);
+    // decoder->AddDetector(kGEM);
+    // decoder->AddDetector(kSTRAW);
     // decoder->AddDetector(kCALORIMETER);
 
     decoder->SetSiliconMapping("SILICON_map_run7.txt");

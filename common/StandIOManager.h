@@ -33,8 +33,8 @@ public:
     void StartEvent(UInt_t nEvent);
     void EndEvent();
     
-    TClonesArray* GetInputDataArray(TString className);
-    TClonesArray* GetOutputDataArray(TString className);
+    TClonesArray* GetInputDataArray(TString branchName);
+    TClonesArray* GetOutputDataArray(TString branchName);
     
     Long64_t GetNumberOfInputEvents() { return fInputTree->GetEntries(); }
 

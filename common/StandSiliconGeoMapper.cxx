@@ -6,9 +6,9 @@ ModuleType StandSiliconGeoMapper::fModulesTypes[3] = {MODULE_LONG, MODULE_SHORT,
 
 Int_t StandSiliconGeoMapper::fStripsNumberCorrection[3][4][2] = 
 {
-    {{639, 0},{639, 0},{0, 0},{0, 0}},
+    {{639, 0},{639, 0}},
     {{0, 613},{0, 613},{0, 613},{0, 613}},
-    {{0, 639},{0, 639},{0, 0},{0, 0}}
+    {{0, 639},{0, 639}}
 };
 
 Double_t StandSiliconGeoMapper::fPitch[2] = {0.095, 0.103};
@@ -30,29 +30,13 @@ Double_t StandSiliconGeoMapper::fModuleCSToStationCS[3][4][3] =
     {{60., -5., 7.3}, {0., 0., 0}}
 }; /* mm */
 
-// good without rotation
-// Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] = 
-// {
-//     {{0, 0, 0},{-0.130, 0, 0}},
-//     {{-0.133, 0, 0},{-0.220, 0, 0},{-0.083, 0, 0},{-0.200, 0, 0}},
-//     {{0, 0, 0},{+0.3, 0, 0}}
-// }; /* mm */
-
-// testing
-Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] = 
+// GOOD
+Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] =
 {
-    {{0, 0, 0},{-0.110, 0, 0}},
-    {{-0.132, 0, 0},{-0.224, 0, 0},{-0.084, 0, 0},{-0.205, 0, 0}},
+    {{0, 0, 0},{-0.110, 0.05, 0}},
+    {{-0.132, 2.568, 0},{-0.224, 2.7, 0},{-0.084, -9.06, 0},{-0.205, -9.15, 0}},
     {{0, 0, 0},{+0.20, 0, 0}}
 }; /* mm */
-
-// for two independent parts
-// Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] = 
-// {
-//     {{0, 0, 0},{-0.130, 0, 0}},
-//     {{-0.138, 0, 0},{-0.195, 0, 0},{-0.077, 0, 0},{-0.180, 0, 0}},
-//     {{0, 0, 0},{+0.3, 0, 0}}
-// }; /* mm */
 
 Int_t StandSiliconGeoMapper::fIsActiveModule[3][4] = 
 // {{1, 0},{1, 0, 1, 0},{1, 0}}; // part1

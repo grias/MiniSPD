@@ -98,9 +98,15 @@ void Analyze()
     UInt_t goodTracks = 0;
     Long64_t nEvents = fTreeTracks->GetEntries();
     printf("NEvents: %lld\n", nEvents);
+
+    // ofstream tracksFile;
+    // tracksFile.open ("tracks.txt");
+    // tracksFile<<"X [mm]\n";
+    // tracksFile<<"==========================================\n";
+
     for (Int_t iEv = 0; iEv < nEvents; iEv++)
     {
-        printf("Event %d\n", iEv);
+        // printf("Event %d\n", iEv);
         fBranchTracks->GetEntry(iEv);
         fBranchSiHits->GetEntry(iEv);
 
@@ -111,7 +117,7 @@ void Analyze()
         // --- Cuts -----------------------------------------------------------
 
         // if (siTrack->GetChiSquare(0) > 0.1) continue;
-        // if (siTrack->GetChiSquare(0) < 0.5) continue;
+        // if (siTrack->GetChiSquare(0) > 0.5) continue;
 
         // // pick only tracks with clusters of size 1
         // Bool_t isBigClusterPresent = false;
@@ -145,18 +151,18 @@ void Analyze()
 
         // pick only tracks ~ parallel to Z axis
         Double_t angleCut = 1; /* deg */
-        if (abs(siTrack->GetParameterX(1)) > tan(angleCut*degToRad)) continue;
+        // if (abs(siTrack->GetParameterX(1)) > tan(angleCut*degToRad)) continue;
 
         // if (goodTracks > 100) continue;
 
         goodTracks++;
         // --- Data processing -----------------------------------------------------------
 
-        for (size_t iStation = 0; iStation < 3; iStation++)
-        {
-            cout<<siTrack->GetModule(iStation)<<"\t";
-        }
-        cout<<endl;
+        // for (size_t iStation = 0; iStation < 3; iStation++)
+        // {
+        //     cout<<siTrack->GetModule(iStation)<<"\t";
+        // }
+        // cout<<endl;
 
         for (size_t iStation = 0; iStation < 3; iStation++)
         {
@@ -165,12 +171,16 @@ void Analyze()
             hStationOccups[iStation]->Fill(hitPosX, hitPosY);
         }
 
+
         Double_t sigma = 0;
         for (size_t iStation = 0; iStation < 3; iStation++)
         {
             Int_t module = siTrack->GetModule(iStation);
             Double_t hitX = siTrack->GetHitPositionX(iStation);
             Double_t residX = siTrack->GetResidualX(iStation);
+            // Double_t hitX = siTrack->GetHitPositionY(iStation);
+            // Double_t residX = siTrack->GetResidualY(iStation);
+            
             Int_t hitId = siTrack->GetHitId(iStation);
             auto siHit = (StandSiliconHit *)fSiliconHits->At(hitId);
 
@@ -198,8 +208,40 @@ void Analyze()
         HitsZX->Add(graphZX, "C*");
         HitsZY->Add(graphZY, "C*");
         HitsXY->Add(graphXY, "C*");
+
+
+        // --- Write file with tracks -----------------------------------------------------------
+        // array<Double_t, 8> hitsX;
+        // for (size_t i = 0; i < hitsX.size(); i++)
+        // {
+        //     hitsX[i] = -1;
+        // }
+
+        // for (size_t iStation = 0; iStation < 3; iStation++)
+        // {
+        //     Double_t hitPosX = siTrack->GetHitPositionX(iStation);
+        //     Int_t module = siTrack->GetModule(iStation);
+
+        //     Int_t absModuleNumber = fStationModToHistMap[iStation][module];
+
+        //     hitsX[absModuleNumber] = hitPosX;
+        // }
+
+        // // for (size_t i = 0; i < hitsX.size(); i++)
+        // //     cout<<hitsX[i]<<"\t";
+        // // cout<<endl;
+
+        // for (size_t i = 0; i < hitsX.size(); i++)
+        // {
+        //     tracksFile<<hitsX[i]<<"\t";
+        // }
+        // tracksFile<<"\n";
+
+        // // if (goodTracks>=100) break;
+        
         
     } // end of event
+    // tracksFile.close();
     printf("\nGood tracks: %d\n", goodTracks);
 }
 

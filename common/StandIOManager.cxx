@@ -39,8 +39,8 @@ void StandIOManager::InitOutput()
 
 void StandIOManager::Finish()
 {
-    FinishInput();
-    FinishOutput();
+    if (fIsInputInitialized) FinishInput();
+    if (fIsOutputInitialized) FinishOutput();
 }
 
 void StandIOManager::FinishInput()
