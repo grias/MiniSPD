@@ -6,12 +6,13 @@ The project was tested on fresh installed Linux Mint 20.1 with ROOT 6.24.
 # Installation
 
    1. Install packages from [ROOT Dependencies](https://root.cern/install/dependencies/);
-   2. Install CERN ROOT package using [this guide](https://root.cern/install/#build-from-source), don't forget to set ROOTSYS environment variable;
-   3. Create build directory;
-   4. Generate makefile using _cmake <./path/to/sourceDir/>_;
-   5. compile minispd using _make_ command;
-   6. Run _. config.sh_;
-   7. Try using testPipeline.sh script in macro directory.
+   2. Install CERN ROOT package using [this guide](https://root.cern/install/#build-from-source), don't forget to set _ROOTSYS_ environment variable;
+   3. Set _VMCWORKDIR_ environment variable to MiniSPD source directory;
+   4. Create build directory;
+   5. Generate makefile using _cmake <./path/to/sourceDir/>_;
+   6. Compile minispd using _make_ command;
+   7. Run _. config.sh_ at the build directory;
+   8. Try using testPipeline.sh script in macro directory.
 
 # Running
 
