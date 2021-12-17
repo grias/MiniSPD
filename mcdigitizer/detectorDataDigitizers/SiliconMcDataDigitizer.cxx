@@ -41,9 +41,6 @@ void SiliconMcDataDigitizer::ProduceDigitFromMcHit(McHit mcHit)
         }
     }
     
-
-    
-
     auto offsetY = StandReverseSiliconGeoMapper::CalculateOffsetY(localHit[0], localHit[1], mcHit.GetStation());
     auto stripY = StandReverseSiliconGeoMapper::CalculateStripForLocalCoordinate(mcHit.GetStation(), mcHit.GetModule(), 1, offsetY);
 

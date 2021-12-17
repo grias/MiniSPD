@@ -87,8 +87,8 @@ void StandTracksProducer::ProduceTracksFromCurrentEvent()
 
         auto bestCandidate = trackCandidates[FindBestTrack(trackCandidates)];
 
-        // Int_t stationToExclude = 1;
-        // FitTrack(bestCandidate, stationToExclude);
+        Int_t stationToExclude = 1;
+        FitTrack(bestCandidate, stationToExclude);
 
         WriteTrackIntoTree(bestCandidate);
     }

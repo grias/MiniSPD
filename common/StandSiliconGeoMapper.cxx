@@ -30,19 +30,26 @@ Double_t StandSiliconGeoMapper::fModuleCSToStationCS[3][4][3] =
     {{60., -5., 7.3}, {0., 0., 0}}
 }; /* mm */
 
-// GOOD
+// // GOOD
+// Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] =
+// {
+//     {{0, 0, 0},{-0.115, 0.080, 0}},
+//     {{-0.133, 2.568, 0},{-0.232, 2.7, 0},{-0.103, -9.030, 0},{-0.220, -9.107, 0}},
+//     {{0.000, 0, 0},{+0.200, 0, 0}}
+// }; /* mm */
+
+// parts
 Double_t StandSiliconGeoMapper::fModulePositionCorrection[3][4][3] =
 {
-    {{0, 0, 0},{-0.110, 0.05, 0}},
-    {{-0.132, 2.568, 0},{-0.224, 2.7, 0},{-0.084, -9.06, 0},{-0.205, -9.15, 0}},
-    {{0, 0, 0},{+0.20, 0, 0}}
+    {{0, 0, 0},{-0.115, 0.080, 0}},
+    {{-0.133, 2.568, 0},{-0.225, 2.7, 0},{-0.090, -9.045, 0},{-0.216, -9.107, 0}},
+    {{0.000, 0, 0},{+0.200, 0, 0}}
 }; /* mm */
 
 Int_t StandSiliconGeoMapper::fIsActiveModule[3][4] = 
 // {{1, 0},{1, 0, 1, 0},{1, 0}}; // part1
-// {{0, 1},{0, 1, 0, 1},{0, 1}}; // part2
+{{0, 1},{0, 1, 0, 1},{0, 1}}; // part2
 // {{1, 1},{1, 1, 1, 1},{1, 1}}; // All
-{{1, 1},{1, 1, 1, 1},{1, 1}}; // Test
 
 
 Double_t StandSiliconGeoMapper::fModuleRotationCorrection[3][4][3] = 
@@ -136,6 +143,23 @@ Bool_t StandSiliconGeoMapper::IsInSensitiveRange(Int_t station, Double_t localY)
         break;
     }
 
-    // return kFALSE;
-    return kTRUE;
+    return kFALSE;
+    // return kTRUE;
+}
+
+Double_t StandSiliconGeoMapper::CalculateGlobalU(Int_t station, Int_t module, Double_t offsetY)
+{
+    // Double_t b = offsetY / fTangentOfStripsYSlope;
+    // auto globalPoint1 = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, offsetY, 0);
+    // auto globalPoint2 = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, 0, b);
+
+    // Double_t x1 = globalPoint1.X();
+    // Double_t x2 = globalPoint2.X();
+    // Double_t y1 = globalPoint1.Y();
+    // Double_t y2 = globalPoint2.Y();
+
+    // auto globalU = TMath::Abs((x2 - x1)*y1 - (y2 - y1) * x1) / TMath::Sqrt( TMath::Sq(x2 - x1) + TMath::Sq(y2 - y1));
+
+    auto globalU = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, offsetY, 0).X() * 0.99904822158; /*cos 2.5 deg*/
+    return globalU;
 }

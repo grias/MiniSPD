@@ -20,6 +20,7 @@ public:
     Double_t GetGlobalX() { return fGlobalX; }
     Double_t GetGlobalY() { return fGlobalY; }
     Double_t GetGlobalZ() { return fGlobalZ; }
+    Double_t GetGlobalU() { return fGlobalU; }
 
     Double_t GetAmplitudeX() { return fAmplitudeX; }
     Double_t GetAmplitudeY() { return fAmplitudeY; }
@@ -38,6 +39,7 @@ public:
     void SetGlobalX(Double_t globalX) { fGlobalX = globalX; }
     void SetGlobalY(Double_t globalY) { fGlobalY = globalY; }
     void SetGlobalZ(Double_t globalZ) { fGlobalZ = globalZ; }
+    void SetGlobalU(Double_t globalU) { fGlobalU = globalU; }
 
     void Print();
 
@@ -57,6 +59,7 @@ private:
     Double_t fGlobalX = 0.;
     Double_t fGlobalY = 0.;
     Double_t fGlobalZ = 0.;
+    Double_t fGlobalU = 0.;
 
     ClassDef(StandSiliconHit, 1)
 };

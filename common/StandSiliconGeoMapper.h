@@ -13,6 +13,7 @@ public:
     static Double_t CalculateLocalY(Double_t localX, Double_t stripOffsetY, Int_t station);
     static Bool_t IsInSensitiveRange(Int_t station, Double_t localY);
     static TVector3 CalculateGlobalCoordinatesForHit(Int_t station, Int_t module, Double_t localX, Double_t localY);
+    static Double_t CalculateGlobalU(Int_t station, Int_t module, Double_t offsetY);
 
     static Int_t fStripsNumberCorrection[3][4][2];
     static Double_t fPitch[2];

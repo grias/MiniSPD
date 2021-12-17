@@ -66,6 +66,7 @@ void CreateHisto()
     {
         histName = Form("h2_station%d_mod%d_residuals_rxx", fStationMap[iHist], fModMap[iHist]);
         histDiscription = Form("ResX vs X (station %d, module %d); res X [mm]; X [mm]", fStationMap[iHist], fModMap[iHist]);
+        // hResVsX[iHist] = new TH2D(histName, histDiscription, 300, -10, 10, 20, 0, 128);
         hResVsX[iHist] = new TH2D(histName, histDiscription, 300, -2.5, 2.5, 10, 0, 63);
         // hResVsX[iHist] = new TH2D(histName, histDiscription, 100, -0.5, 0.5, 10, 0, 63);
 
@@ -99,10 +100,10 @@ void Analyze()
     Long64_t nEvents = fTreeTracks->GetEntries();
     printf("NEvents: %lld\n", nEvents);
 
-    // ofstream tracksFile;
-    // tracksFile.open ("tracks.txt");
-    // tracksFile<<"X [mm]\n";
-    // tracksFile<<"==========================================\n";
+    ofstream tracksFile;
+    tracksFile.open ("tracks.txt");
+    tracksFile<<"(X, Y) [mm]\n";
+    tracksFile<<"==========================================\n";
 
     for (Int_t iEv = 0; iEv < nEvents; iEv++)
     {
@@ -118,6 +119,7 @@ void Analyze()
 
         // if (siTrack->GetChiSquare(0) > 0.1) continue;
         // if (siTrack->GetChiSquare(0) > 0.5) continue;
+        // if (siTrack->GetChiSquare(0) > 20) continue;
 
         // // pick only tracks with clusters of size 1
         // Bool_t isBigClusterPresent = false;
@@ -211,37 +213,48 @@ void Analyze()
 
 
         // --- Write file with tracks -----------------------------------------------------------
-        // array<Double_t, 8> hitsX;
+        array<Double_t, 8> hitsX;
+        array<Double_t, 8> hitsY;
+        for (size_t i = 0; i < hitsX.size(); i++)
+        {
+            hitsX[i] = -1;
+            hitsY[i] = -1;
+        }
+
+        for (size_t iStation = 0; iStation < 3; iStation++)
+        {
+            Double_t hitPosX = siTrack->GetHitPositionX(iStation);
+            Double_t hitPosY = siTrack->GetHitPositionY(iStation);
+            Int_t module = siTrack->GetModule(iStation);
+
+            Int_t hitId = siTrack->GetHitId(iStation);
+            Double_t globalU = ((StandSiliconHit *)fSiliconHits->At(hitId))->GetGlobalU();
+
+            // std::cout<<globalU<<"\t"<<TMath::Sqrt(hitPosX*hitPosX + hitPosY*hitPosY)<<std::endl;
+            // std::cout<<TMath::Abs(globalU / 0.99904822158 /*cos2.5deg*/ - hitPosX)<<std::endl;
+
+
+            Int_t absModuleNumber = fStationModToHistMap[iStation][module];
+
+            hitsX[absModuleNumber] = hitPosX;
+            hitsY[absModuleNumber] = globalU;
+        }
+
         // for (size_t i = 0; i < hitsX.size(); i++)
-        // {
-        //     hitsX[i] = -1;
-        // }
+        //     cout<<hitsX[i]<<","<<hitsY[i]<<"\t";
+        // cout<<endl;
 
-        // for (size_t iStation = 0; iStation < 3; iStation++)
-        // {
-        //     Double_t hitPosX = siTrack->GetHitPositionX(iStation);
-        //     Int_t module = siTrack->GetModule(iStation);
+        for (size_t i = 0; i < hitsX.size(); i++)
+        {
+            tracksFile<<hitsX[i]<<"\t"<<hitsY[i]<<"\t";
+        }
+        tracksFile<<"\n";
 
-        //     Int_t absModuleNumber = fStationModToHistMap[iStation][module];
-
-        //     hitsX[absModuleNumber] = hitPosX;
-        // }
-
-        // // for (size_t i = 0; i < hitsX.size(); i++)
-        // //     cout<<hitsX[i]<<"\t";
-        // // cout<<endl;
-
-        // for (size_t i = 0; i < hitsX.size(); i++)
-        // {
-        //     tracksFile<<hitsX[i]<<"\t";
-        // }
-        // tracksFile<<"\n";
-
-        // // if (goodTracks>=100) break;
+        // if (goodTracks>=100) break;
         
         
     } // end of event
-    // tracksFile.close();
+    tracksFile.close();
     printf("\nGood tracks: %d\n", goodTracks);
 }
 
@@ -277,7 +290,7 @@ void DrawHisto(UInt_t runId)
     }
 
     // projection
-    TF1 *fitFun = new TF1("gausWithBackground","pol0(0)+gaus(1)",-0.2,0.2);
+    TF1 *fitFun = new TF1("gausWithBackground","pol0(0)+gaus(1)",-0.5,0.5);
     fitFun->SetParName(0,"Base line");
     fitFun->SetParName(1,"Height");
     fitFun->SetParName(2,"Mean");
@@ -299,9 +312,10 @@ void DrawHisto(UInt_t runId)
     {
         auto projection = hResVsX[iHist]->ProjectionX();
         // auto fitRes = projection->Fit("pol0", "SCQ+");
-        // auto fitRes = projection->Fit("gaus", "SQ+", "", -0.2, 0.2);
-        auto fitRes = projection->Fit("gaus", "SQ+", "");
-        // auto fitRes = projection->Fit(fitFun, "SQ", "", -0.2, 0.2);
+        // auto fitRes = projection->Fit("gaus", "SQ+", "", -0.5, 0.5);
+        auto fitRes = projection->Fit("gaus", "SQ+", "", -2, 2);
+        // auto fitRes = projection->Fit("gaus", "SQ+", "");
+        // auto fitRes = projection->Fit(fitFun, "SQ", "", -0.5, 0.5);
         
         if ((Int_t) fitRes == 0)
         {

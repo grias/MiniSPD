@@ -19,7 +19,7 @@ int main(int argc, char const *argv[])
     hitsProducer->SetOutputFileName(outputFilePath);
 
     hitsProducer->AddHitMaker(make_shared<SiliconHitMaker>());
-    // hitsProducer->AddHitMaker(make_shared<GemHitMaker>());
+    hitsProducer->AddHitMaker(make_shared<GemHitMaker>());
 
     if (iEvent == -1)
     {

@@ -132,13 +132,18 @@ void SiliconHitMaker::ProcessClustersIntoHit(StandSiliconCluster* clusterX, Stan
     Double_t localX = clusterX->GetLocalCoordinate();
     Double_t localY = StandSiliconGeoMapper::CalculateLocalY(localX, clusterY->GetLocalCoordinate(), station);
 
-    if (!IsHitInSensitiveRange(station, localY)) return;
+    // if (!IsHitInSensitiveRange(station, localY)) return;
 
     StandSiliconHit* hit = new((*fHitsArray)[fHitsArray->GetEntriesFast()]) StandSiliconHit(station, module, localX, localY);
     hit->SetAmplitudes(clusterX->GetAmplitude(), clusterY->GetAmplitude());
     hit->SetClustersSizes(clusterX->GetClusterSize(), clusterY->GetClusterSize());
     TVector3 globalHitPos = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);
     hit->SetGlobalCoordinates(globalHitPos.X(), globalHitPos.Y(), globalHitPos.Z());
+
+    Double_t globalU = StandSiliconGeoMapper::CalculateGlobalU(station, module, clusterY->GetLocalCoordinate());
+    hit->SetGlobalU(globalU);
+
+    // std::cout<<TMath::Abs(localX - clusterY->GetLocalCoordinate())<<std::endl;
 }
 
 Bool_t SiliconHitMaker::IsHitInSensitiveRange(Int_t station, Double_t localY)
