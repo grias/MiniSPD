@@ -30,18 +30,18 @@ public:
     void FinishInput();
     void FinishOutput();
 
-    void StartEvent(Int_t nEvent);
+    void StartEvent(UInt_t nEvent);
     void EndEvent();
     
-    TClonesArray* GetInputDataArray(TString className);
-    TClonesArray* GetOutputDataArray(TString className);
+    TClonesArray* GetInputDataArray(TString branchName);
+    TClonesArray* GetOutputDataArray(TString branchName);
     
     Long64_t GetNumberOfInputEvents() { return fInputTree->GetEntries(); }
 
     void SetVerboseLevel(Int_t verbose) { fVerbose = verbose; }
 
 private:
-    void ReadInputEvent(Int_t nEvent) { fInputTree->GetEntry(nEvent); }
+    void ReadInputEvent(UInt_t nEvent) { fInputTree->GetEntry(nEvent); }
     void FillEvent() { fOutputTree->Fill(); }
     void ClearArrays();
     void WriteTreeIntoOutputFile() { fOutputTree->Write(); }

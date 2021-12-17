@@ -18,6 +18,7 @@ public:
     static Int_t fIfReverseModuleY[2];
     static Int_t fIsActiveModule[2];
     static Double_t fStationsRotation[2];
+    static Double_t fStationsCenter[2][2];
     static Double_t fStationCSToGlobalCS[2][3];
     static Double_t fStationPositionCorrection[2][3];
 

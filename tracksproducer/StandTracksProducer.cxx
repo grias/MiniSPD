@@ -87,8 +87,8 @@ void StandTracksProducer::ProduceTracksFromCurrentEvent()
 
         auto bestCandidate = trackCandidates[FindBestTrack(trackCandidates)];
 
-        // Int_t stationToExclude = 1;
-        // FitTrack(bestCandidate, stationToExclude);
+        Int_t stationToExclude = 1;
+        FitTrack(bestCandidate, stationToExclude);
 
         WriteTrackIntoTree(bestCandidate);
     }
@@ -102,28 +102,23 @@ void StandTracksProducer::FindTrackCandidates(vector<TrackCandidate> &trackCandi
     if (nHits > 50) return; // bad events
     if (nHits > 3) return;
     
-    // cout << "-I-<StandTracksProducer::FindTrackCandidates> Total silicon hits: " << nHits << endl;
-
     for (size_t iHit = 0; iHit < nHits; iHit++)
     {
         auto localSiliconHit = (StandSiliconHit *)fSiliconHitsArray->At(iHit);
-        // localSiliconHit->Print();
         Int_t station = localSiliconHit->GetStation();
         Int_t module = localSiliconHit->GetModule();
-        Double_t localX = localSiliconHit->GetLocalX();
-        Double_t localY = localSiliconHit->GetLocalY();
+        Double_t globalX = localSiliconHit->GetGlobalX();
+        Double_t globalY = localSiliconHit->GetGlobalY();
+        Double_t globalZ = localSiliconHit->GetGlobalZ();
 
         HitWrapper hit(iHit, station); 
         hit.module = module;
-
-        hit.globalPosition = StandSiliconGeoMapper::CalculateGlobalCoordinatesForHit(station, module, localX, localY);
+        hit.globalPosition = TVector3(globalX, globalY, globalZ);
 
         if (!StandSiliconGeoMapper::fIsActiveModule[station][module]) continue;
         
         stationsHits[hit.station].push_back(hit);
     }
-
-    // cout<<"HitsInStations: "<<stationsHits[0].size()<<"\t"<<stationsHits[1].size()<<"\t"<<stationsHits[2].size()<<endl;
 
     for (auto &&iHit0 : stationsHits[0])
     for (auto &&iHit1 : stationsHits[1])
@@ -135,8 +130,6 @@ void StandTracksProducer::FindTrackCandidates(vector<TrackCandidate> &trackCandi
         candidate.hits.push_back(iHit2);
         trackCandidates.push_back(candidate);
     }
-
-    // cout<<"Candidates: "<<trackCandidates.size()<<endl;
 }
 
 void StandTracksProducer::FitTracks(vector<TrackCandidate> &trackCandidates)
@@ -182,9 +175,6 @@ void StandTracksProducer::FitTrack(TrackCandidate &trackCandidate, Int_t exclude
     linFitX.GetParameters(paramsX);
     linFitY.GetParameters(paramsY);
 
-    // cout<<"ParsX: "<<paramsX(0)<<"\t"<<paramsX(1)<<"\tChiSquare: "<<linFitX.GetChisquare()<<endl;
-    // cout<<"ParsY: "<<paramsY(0)<<"\t"<<paramsY(1)<<"\tChiSquare: "<<linFitY.GetChisquare()<<endl;
-
     trackCandidate.parsX[0] = paramsX(0);
     trackCandidate.parsX[1] = paramsX(1);
 
@@ -211,8 +201,6 @@ void StandTracksProducer::FitTrack(TrackCandidate &trackCandidate, Int_t exclude
 
         trackCandidate.residualsX[station] = residX;
         trackCandidate.residualsY[station] = residY;
-
-        // cout<<"Residuals: "<<residX<<"\t"<<residY<<endl;
     }
 }
 

@@ -2,10 +2,6 @@
 
 #include <iostream>
 
-using std::cerr;
-using std::cout;
-using std::endl;
-
 StandHitsProducer::StandHitsProducer()
 {
     fIOManager = new StandIOManager();
@@ -17,7 +13,7 @@ StandHitsProducer::~StandHitsProducer()
 
 void StandHitsProducer::ProduceHitsFromAllEvents()
 {
-    cout << "-I-<StandHitsProducer::ProduceHitsFromAllEvents>" << endl;
+    std::cout << "-I-<StandHitsProducer::ProduceHitsFromAllEvents>" << std::endl;
 
     OpenInputOutputFiles();
 
@@ -27,9 +23,9 @@ void StandHitsProducer::ProduceHitsFromAllEvents()
     CloseInputOutputFiles();
 }
 
-void StandHitsProducer::ProduceHitsFromOneEvent(Int_t event)
+void StandHitsProducer::ProduceHitsFromOneEvent(UInt_t event)
 {
-    cout << "-I-<StandHitsProducer::ProduceHitsFromOneEvent>" << endl;
+    std::cout << "-I-<StandHitsProducer::ProduceHitsFromOneEvent>" << std::endl;
 
     OpenInputOutputFiles();
 
@@ -38,26 +34,9 @@ void StandHitsProducer::ProduceHitsFromOneEvent(Int_t event)
     CloseInputOutputFiles();
 }
 
-void StandHitsProducer::ProduceHitsFromEvents(Int_t startEvent, Int_t endEvent)
+void StandHitsProducer::ProduceHitsFromEvents(UInt_t startEvent, UInt_t endEvent)
 {
-    if (startEvent > endEvent)
-    {
-        cerr
-            << "-E-<StandHitsProducer::ProduceHitsFromEvents> startEvent = " << startEvent
-            << " is more than endEvent = " << endEvent
-            << endl;
-        return;
-    }
-
-    Long64_t nEvents = fIOManager->GetNumberOfInputEvents();
-    if (endEvent >= nEvents)
-    {
-        cerr
-            << "-E-<StandHitsProducer::ProduceHitsFromEvents> endEvent = " << endEvent
-            << " is more than events number in file = " << nEvents
-            << endl;
-        return;
-    }
+    if (!IsEventsExist(startEvent, endEvent)) return;
 
     for (size_t iEvent = startEvent; iEvent <= endEvent; iEvent++)
     {
@@ -69,8 +48,6 @@ void StandHitsProducer::ProduceHitsFromEvents(Int_t startEvent, Int_t endEvent)
 
 void StandHitsProducer::ProduceHitsFromCurrentEvent()
 {
-    // cout << "-I-<StandHitsProducer::ProduceHitsFromCurrentEvent> Processing event " << iEvent << endl;
-
     for (auto &&hitMaker : fHitMakersCollection)
     {
         hitMaker->ProduceHitsFromCurrentEvent();
@@ -79,8 +56,6 @@ void StandHitsProducer::ProduceHitsFromCurrentEvent()
 
 void StandHitsProducer::OpenInputOutputFiles()
 {
-    cout << "-I-<StandHitsProducer::OpenInputOutputFiles>" << endl;
-
     ConfigureInput();
     ConfigureOutput();
 
@@ -92,7 +67,7 @@ void StandHitsProducer::OpenInputOutputFiles()
 
 void StandHitsProducer::ConfigureInput()
 {
-    cout << "-I-<StandHitsProducer::ConfigureInput>" << endl;
+    std::cout << "-I-<StandHitsProducer::ConfigureInput> Filename: "<< fInputFileName << std::endl;
 
     fIOManager->SetInputFileName(fInputFileName);
 
@@ -104,7 +79,7 @@ void StandHitsProducer::ConfigureInput()
 
 void StandHitsProducer::ConfigureOutput()
 {
-    cout << "-I-<StandHitsProducer::ConfigureOutput> Name: "<< fOutputFileName << endl;
+    std::cout << "-I-<StandHitsProducer::ConfigureOutput> Filename: "<< fOutputFileName << std::endl;
 
     fIOManager->SetOutputFileName(fOutputFileName);
 
@@ -134,6 +109,30 @@ void StandHitsProducer::GetOutputData()
 
 void StandHitsProducer::CloseInputOutputFiles()
 {
-    cout << "-I-<StandHitsProducer::CloseInputOutputFiles>" << endl;
+    std::cout << "-I-<StandHitsProducer::CloseInputOutputFiles>" << std::endl;
     fIOManager->Finish();
+}
+
+Bool_t StandHitsProducer::IsEventsExist(UInt_t startEvent, UInt_t endEvent)
+{
+    if (startEvent > endEvent)
+    {
+        std::cerr
+            << "-E-<StandHitsProducer::ProduceHitsFromEvents> startEvent = " << startEvent
+            << " is more than endEvent = " << endEvent
+            << std::endl;
+        return kFALSE;
+    }
+
+    Long64_t nEvents = fIOManager->GetNumberOfInputEvents();
+    if (endEvent >= nEvents)
+    {
+        std::cerr
+            << "-E-<StandHitsProducer::ProduceHitsFromEvents> endEvent = " << endEvent
+            << " is more than events number in file = " << nEvents
+            << std::endl;
+        return kFALSE;
+    }
+
+    return kTRUE;
 }

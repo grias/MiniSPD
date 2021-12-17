@@ -11,7 +11,7 @@ int main(int argc, char const *argv[])
 
     TString file = Form("mpd_run_Straw_stand_%d.data",run);
     
-    bool doConvert = false;
+    bool doConvert = true;
     
     auto decoder = make_shared<BmnRawDataDecoder>(file, nEvents);
 
@@ -23,7 +23,8 @@ int main(int argc, char const *argv[])
 
     decoder->SetSiliconMapping("SILICON_map_run7.txt");
     decoder->SetTrigMapping("Trig_map_Run7.txt");
-    decoder->SetDchMapping("Straw_map_Run780.txt");
+    // decoder->SetDchMapping("Straw_map_Run780.txt");
+    decoder->SetDchMapping("Straw_map_Run916.txt");
     decoder->SetGemMapping("GEM_map_run.txt");
 
     decoder->InitMaps();

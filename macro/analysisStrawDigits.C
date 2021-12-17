@@ -198,6 +198,7 @@ void DrawHisto(UInt_t runId)
     canvas->SetLogy();
     canvas->SaveAs(Form("pictures/run%04d_digits_straw_cluster_size.png", runId));
     canvas->Clear();
+    canvas->SetLogy(0);
 
     h1Time->SetLineWidth(3);
     h1Time->Draw();

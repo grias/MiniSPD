@@ -23,7 +23,8 @@ BmnDchRaw2Digit::~BmnDchRaw2Digit()
 
 BmnStatus BmnDchRaw2Digit::ReadMapFromFile(Int_t period)
 {
-    TString fileName = Form("Straw_map_Run%d.txt", 780);
+    // TString fileName = Form("Straw_map_Run%d.txt", 780);
+    TString fileName = Form("Straw_map_Run%d.txt", 916);
     TString path = TString(getenv("VMCWORKDIR")) + "/input/" + fileName;
 
     string dummy;  

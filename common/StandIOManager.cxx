@@ -39,8 +39,8 @@ void StandIOManager::InitOutput()
 
 void StandIOManager::Finish()
 {
-    FinishInput();
-    FinishOutput();
+    if (fIsInputInitialized) FinishInput();
+    if (fIsOutputInitialized) FinishOutput();
 }
 
 void StandIOManager::FinishInput()
@@ -85,7 +85,7 @@ void StandIOManager::FinishOutput()
     fIsOutputInitialized = kFALSE;
 }
 
-void StandIOManager::StartEvent(Int_t nEvent)
+void StandIOManager::StartEvent(UInt_t nEvent)
 {
     ClearArrays();
     ReadInputEvent(nEvent);

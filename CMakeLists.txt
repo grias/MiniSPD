@@ -121,5 +121,7 @@ add_subdirectory (tracksproducer)
 add_subdirectory (executables)
 add_subdirectory (mille)
 add_subdirectory (TMillepede)
+add_subdirectory (mcdigitizer)
+add_subdirectory (mc)
 
 WRITE_CONFIG_FILE(config.sh)

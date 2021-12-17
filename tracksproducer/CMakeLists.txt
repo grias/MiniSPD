@@ -17,10 +17,12 @@ link_directories( ${LINK_DIRECTORIES})
 
 set(SRCS
     StandTracksProducer.cxx
+    StandTracksProducerX.cxx
 )
 
 set(HEADERS
     StandTracksProducer.h
+    StandTracksProducerX.h
 )
 
 Set(LINKDEF StandTracksProducerLinkDef.h)

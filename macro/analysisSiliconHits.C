@@ -13,6 +13,7 @@ TH1I* hClustersSizeX;
 TH1I* hClustersSizeY;
 array<array<TH1D *, 4>, 3> hClusterAmplitude;
 TH1D* h1Signal[3];
+TH1D* h1CoordU;
 
 void OpenInput(UInt_t runId);
 void CreateHisto();
@@ -106,6 +107,10 @@ void CreateHisto()
         h1Signal[iStation] = new TH1D(histName, histDiscription, 80, 0, 800);
     }
 
+    histName = Form("h1_coord_u");
+    histDiscription = Form("Silicon hit U;U [mm];");
+    h1CoordU = new TH1D(histName, histDiscription, 2000, 0, 200);
+
 }
 
 void Analyze()
@@ -131,6 +136,7 @@ void Analyze()
             Double_t amplitudeY = std::abs(siHit->GetAmplitudeY());
             Double_t clusterSizeX = siHit->GetClusterSizeX();
             Double_t clusterSizeY = siHit->GetClusterSizeY();
+            Double_t globalU = siHit->GetGlobalU();
 
             if (!StandSiliconGeoMapper::fIsActiveModule[station][module]) continue;
 
@@ -155,6 +161,10 @@ void Analyze()
 
             h1Signal[station]->Fill(abs(amplitudeX));
             h1Signal[station]->Fill(abs(amplitudeY));
+
+            h1CoordU->Fill(globalU);
+
+            // std::cout<<TMath::Abs(globalU / 0.99904822158 /*cos2.5deg*/ - globalHitPos.X())<<std::endl;
             
             // siHit->Print();
         } // end of hit
@@ -254,4 +264,8 @@ void DrawHisto(UInt_t runId)
     h1Signal[1]->Draw("SAME");
     // cSignalAll->BuildLegend();
     cSignalAll->SaveAs(Form("pictures/run%04d_hits_si_amplitude_all.png", runId));
+
+    auto cGlobalU = new TCanvas(Form("c_global_u"), "Global U", 800, 600);
+    h1CoordU->Draw();
+    cGlobalU->SaveAs(Form("pictures/run%04d_hits_si_coord_u.png", runId));
 }

@@ -137,6 +137,7 @@ void Analyze()
 
         Long64_t nDigits = fStrawDigits->GetEntriesFast();
         if (nDigits != 4) continue;
+        // if (nDigits > 4) continue;
         
         // printf("NDigits: %lld\n", nDigits);
         for (size_t iDigit = 0; iDigit < nDigits; iDigit++)
@@ -159,6 +160,7 @@ void Analyze()
 
             // if (plane == 1 && wire == 45)
             hRtTotal->Fill(distToWire, time);
+            // hRtTotal->Fill(abs(distToWire), time);
         }
     }
     
@@ -260,9 +262,9 @@ void DrawHisto(UInt_t runId)
 
     gStyle->SetOptFit();
 
-    TCanvas *cRtTotal = new TCanvas("cRtTotal", "", 1000, 1000);
-    hRtTotal->Draw("");
-    cRtTotal->SaveAs(Form("pictures/run%04d_rt_total.png", runId));
+    // TCanvas *cRtTotal = new TCanvas("cRtTotal", "", 1000, 1000);
+    // hRtTotal->Draw("");
+    // cRtTotal->SaveAs(Form("pictures/run%04d_rt_total.png", runId));
 
     // TCanvas *cRtSingle = new TCanvas("cRtSingle", "", 1000, 1000);
     // hRtSingle->Draw("COL");
@@ -276,44 +278,43 @@ void DrawHisto(UInt_t runId)
     hRtProfile->Draw("SAME");
     cRtProfile->SaveAs(Form("pictures/run%04d_rt_total_profile.png", runId));
 
-    TCanvas *cRtSigma = new TCanvas("cRtSigma", "", 2000, 1000);
-    hRtSigma->SetAxisRange(0, 10,"Y");
-    hRtSigma->Draw("P*");
-    cRtSigma->SaveAs(Form("pictures/run%04d_rt_sigma.png", runId));
+    // TCanvas *cOccupancy = new TCanvas("cOccupancy", "", 800, 800);
+    // h1OccupancyArr[1]->Draw("");
+    // h1OccupancyArr[0]->Draw("SAME");
+    // // cOccupancy->BuildLegend();
+    // cOccupancy->SaveAs(Form("pictures/run%04d_rt_straw_occupancy.png", runId));
 
-    TCanvas *cRtChiNdf = new TCanvas("cRtChiNdf", "", 1000, 1000);
-    cRtChiNdf->SetLogy();
-    hRtChiNdf->Draw("P*");
-    cRtChiNdf->SaveAs(Form("pictures/run%04d_rt_chi_ndf.png", runId));
+    // Int_t nBin = 33;
+    // TCanvas *cFitExample = new TCanvas("cFitExample", "", 1000, 1000);
+    // auto projection = hRtTotal->ProjectionY(Form("proj_%02d", nBin), nBin, nBin);
+    // projection->SetTitle("RT slice");
+    // auto fitRes = projection->Fit("gaus", "Q+");
+    // projection->Draw();
+    // cFitExample->SaveAs(Form("pictures/run%04d_rt_fit_example.png", runId));
 
-    TCanvas *cRtNdf = new TCanvas("cRtNdf", "", 1000, 1000);
-    hRtNdf->Draw("P*");
-    cRtNdf->SaveAs(Form("pictures/run%04d_rt_ndf.png", runId));
+    // TCanvas *cRtSigma = new TCanvas("cRtSigma", "", 2000, 1000);
+    // hRtSigma->SetAxisRange(0, 10,"Y");
+    // hRtSigma->Draw("P*");
+    // cRtSigma->SaveAs(Form("pictures/run%04d_rt_sigma.png", runId));
 
-    TCanvas *cRtFder = new TCanvas("cRtFder", "", 2000, 1000);
-    hRtFder->SetAxisRange(-100, 100,"Y");
-    hRtFder->Draw("E");
-    cRtFder->SaveAs(Form("pictures/run%04d_rt_FDer.png", runId));
+    // TCanvas *cRtChiNdf = new TCanvas("cRtChiNdf", "", 1000, 1000);
+    // cRtChiNdf->SetLogy();
+    // hRtChiNdf->Draw("P*");
+    // cRtChiNdf->SaveAs(Form("pictures/run%04d_rt_chi_ndf.png", runId));
 
-    TCanvas *cRtSigmaU = new TCanvas("cRtSigmaU", "", 2000, 1000);
-    hRtSigmaU->SetAxisRange(-2, 2,"Y");
-    hRtSigmaU->Draw("E");
-    cRtSigmaU->SaveAs(Form("pictures/run%04d_rt_sigmaU.png", runId));
+    // TCanvas *cRtNdf = new TCanvas("cRtNdf", "", 1000, 1000);
+    // hRtNdf->Draw("P*");
+    // cRtNdf->SaveAs(Form("pictures/run%04d_rt_ndf.png", runId));
 
-    TCanvas *cOccupancy = new TCanvas("cOccupancy", "", 800, 800);
-    h1OccupancyArr[1]->Draw("");
-    h1OccupancyArr[0]->Draw("SAME");
-    // cOccupancy->BuildLegend();
-    cOccupancy->SaveAs(Form("pictures/run%04d_rt_straw_occupancy.png", runId));
+    // TCanvas *cRtFder = new TCanvas("cRtFder", "", 2000, 1000);
+    // hRtFder->SetAxisRange(-100, 100,"Y");
+    // hRtFder->Draw("E");
+    // cRtFder->SaveAs(Form("pictures/run%04d_rt_FDer.png", runId));
 
-    Int_t nBin = 33;
-    TCanvas *cFitExample = new TCanvas("cFitExample", "", 1000, 1000);
-    auto projection = hRtTotal->ProjectionY(Form("proj_%02d", nBin), nBin, nBin);
-    projection->SetTitle("RT slice");
-    auto fitRes = projection->Fit("gaus", "Q+");
-    projection->Draw();
-    cFitExample->SaveAs(Form("pictures/run%04d_rt_fit_example.png", runId));
-
+    // TCanvas *cRtSigmaU = new TCanvas("cRtSigmaU", "", 2000, 1000);
+    // hRtSigmaU->SetAxisRange(-2, 2,"Y");
+    // hRtSigmaU->Draw("E");
+    // cRtSigmaU->SaveAs(Form("pictures/run%04d_rt_sigmaU.png", runId));
 }
 
 Double_t CalculateDistanceToWire(array<Double_t, 2> trackParameters, array<Double_t, 2> wirePosition)
